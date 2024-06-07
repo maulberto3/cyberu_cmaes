@@ -21,12 +21,12 @@ jobs:
           toolchain: stable
       # Install dependencies task
       - name: Install dependencies
-        run: make build 
+        run: cargo build 
       # Run your rust test 
       - name: Set up terminal
         run: echo "TERM=xterm" >> $GITHUB_ENV
       - name: Run tests
-        run: make test
+        run: cargo test
       # Add more rust commands as needed 
 
       # Run your test functions files ...
