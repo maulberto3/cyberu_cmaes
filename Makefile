@@ -26,7 +26,7 @@ run:
 	clear && make build && cargo run
 
 test:
-	clear && cargo test --tests
-
+	clear && cargo test --lib
+	
 rel:
 	clear && make build && cargo run --release

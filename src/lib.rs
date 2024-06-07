@@ -19,29 +19,6 @@ use strategies::Algo;
 ///
 /// `anyhow::Result` may be used with one *or* two type parameters.
 ///
-/// ```rust
-/// use anyhow::Result;
-///
-/// fn demo1() -> Result<T> {...}
-///            // ^ equivalent to std::result::Result<T, anyhow::Error>
-///
-/// fn demo2() -> Result<T, OtherError> {...}
-///            // ^ equivalent to std::result::Result<T, OtherError>
-/// ```
-///
-/// # Example
-///
-/// ```
-/// use anyhow::Result;
-///
-/// fn main() -> Result<()> {
-///     # return Ok(());
-///     let config = std::fs::read_to_string("cluster.json")?;
-///     let map: ClusterMap = serde_json::from_str(&config)?;
-///     println!("cluster info: {:#?}", map);
-///     Ok(())
-/// }
-/// ```
 pub fn work() -> Result<()> {
     // Step 1: Choose Algorithm
     let (popsize, num_dims) = (50, 4);
