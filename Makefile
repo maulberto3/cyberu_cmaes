@@ -1,8 +1,8 @@
 dev-size:
-	du ./target/debug/rust_openes -h
+	du ./target/debug/cyberu_cmaes -h
 
 prod-size:
-	du ./target/release/rust_openes -h
+	du ./target/release/cyberu_cmaes -h
 
 check:
 	cargo check
@@ -13,20 +13,20 @@ fmt:
 lint:
 	cargo clippy --no-default-features 
 
-clean:
-	clear && cargo clean
-
 build:
 	clear && cargo build
 
-test:
-	clear && cargo test --tests
+clean:
+	clear && cargo cache --autoclean && cargo clean
 
 prep:
 	clear && make fmt && make lint
 
 run:
 	clear && make build && cargo run
+
+test:
+	clear && cargo test --tests
 
 rel:
 	clear && make build && cargo run --release
