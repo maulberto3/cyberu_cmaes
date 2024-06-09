@@ -14,7 +14,7 @@ lint:
 	cargo clippy --no-default-features 
 
 build:
-	clear && cargo build
+	clear && cargo check && cargo build
 
 clean:
 	clear && cargo cache --autoclean && cargo clean
@@ -23,7 +23,7 @@ prep:
 	clear && make fmt && make lint
 
 run:
-	clear && make build && cargo run
+	clear && cargo run
 
 test:
 	clear && cargo test --lib
