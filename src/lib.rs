@@ -1,12 +1,12 @@
 use anyhow::Result;
-use ndarray::Array2;
+// use ndarray::Array2;
 
-mod fitness;
-use fitness::square_and_sum;
+// mod fitness;
+// use fitness::square_and_sum;
 
 mod params;
 
-mod states;
+// mod states;
 
 mod strategies;
 use strategies::Algo;
@@ -21,13 +21,13 @@ use strategies::Algo;
 ///
 pub fn work() -> Result<()> {
     // Step 1: Choose Algorithm
-    let (popsize, num_dims) = (50, 4);
+    let (popsize, num_dims) = (1, 4);
     let open_es = Algo::CMAES(popsize, num_dims);
     // dbg!(&open_es);
 
     // // Step 2: Get its (default) Parmeters and...
-    // let params = open_es.default_params();
-    // // dbg!(&params);
+    let params = open_es.default_params();
+    dbg!(&params);
 
     // // Step 3: Initiate its State
     // let mut state = open_es.init_algorithm(&params);

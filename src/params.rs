@@ -1,3 +1,5 @@
+use anyhow::{anyhow, Result};
+
 #[derive(Debug)]
 pub enum Params {
     CMAES(CMAESParams),
@@ -6,11 +8,15 @@ pub enum Params {
 
 #[derive(Debug)]
 pub struct CMAESParams {
-    // pub sigma_init: f32,
+    pub mu: i32,
 }
 
 impl CMAESParams {
-    pub fn default_params() -> Self {
-        CMAESParams {}
+    pub fn default_params(popsize: &i32) -> Result<CMAESParams> {
+        if *popsize > 1 {
+            Ok(CMAESParams { mu: *popsize / 2 })
+        } else {
+            Err(anyhow!("popsize must bre greater than 1, got {:?}", popsize))
+        }
     }
 }
