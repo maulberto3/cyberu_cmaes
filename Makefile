@@ -1,17 +1,17 @@
 dev-size:
-	du ./target/debug/cyberu_cmaes -h
+	clear && du ./target/debug/cyberu_cmaes -h
 
 prod-size:
-	du ./target/release/cyberu_cmaes -h
+	clear && du ./target/release/cyberu_cmaes -h
 
 check:
-	cargo check
+	clear && cargo check
 
 fmt:
-	cargo fmt
+	clear && cargo fmt
 
 lint:
-	cargo clippy --no-default-features 
+	clear && cargo clippy --no-default-features 
 
 build:
 	clear && cargo check && cargo build
@@ -29,4 +29,4 @@ test:
 	clear && cargo test --lib
 	
 rel:
-	clear && make build && cargo run --release
+	clear && cargo run --release
