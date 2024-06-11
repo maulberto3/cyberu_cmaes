@@ -5,11 +5,12 @@ use anyhow::Result;
 // use fitness::square_and_sum;
 
 mod params;
+use params::CMAESInitParams;
 
 // mod states;
 
 mod strategies;
-use strategies::Algo;
+// use strategies::Algo;
 
 /// `Result<T, Error>`
 ///
@@ -21,13 +22,19 @@ use strategies::Algo;
 ///
 pub fn work() -> Result<()> {
     // Step 1: Choose Algorithm
-    let (popsize, num_dims) = (1, 4);
-    let open_es = Algo::CMAES(popsize, num_dims);
-    // dbg!(&open_es);
+    let init_params = CMAESInitParams {
+        mean: vec![0.0, 1.0, 2.0],
+        sigma: 1.0,
+        n_max_resampling: None,
+        popsize: None,
+    };
+    let init_params = CMAESInitParams::new(init_params)?;
+    dbg!(&init_params);
+    // let open_es = Algo::CMAES();
 
     // // Step 2: Get its (default) Parmeters and...
-    let params = open_es.default_params();
-    dbg!(&params);
+    // let params = open_es.default_params();
+    // dbg!(&params);
 
     // // Step 3: Initiate its State
     // let mut state = open_es.init_algorithm(&params);
