@@ -1,26 +1,28 @@
 // use ndarray::{s, Array2};
 // use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
 
-use anyhow::Result;
+// use anyhow::Result;
 
 use crate::{
-    params::{CMAESParams, Params},
+    params::CMAESInitParams,
     // states::{CMAESState, State},
 };
 
 #[derive(Debug)]
 pub enum Algo {
-    CMAES(i32, i32),
+    Cmaes(CMAESInitParams),
     // OtherAlgo,
 }
 
 impl Algo {
-    pub fn default_params(&self) -> Result<Params> {
-        match self {
-            Algo::CMAES(popsize, _) => Ok(Params::CMAES(CMAESParams::default_params(popsize)?)),
-            _ => Ok(Params::OtherParams),
-        }
-    }
+    //     pub fn default_params(&self) -> Result<Params> {
+    //         match self {
+    //             Algo::CMAES(init_params) => {
+    //                 Ok(Params::CMAES(CMAESParams::default_params(init_params)?))
+    //             }
+    //             _ => Ok(Params::OtherParams),
+    //         }
+    //     }
 
     // pub fn init_algorithm(&self, params: &Params) -> State {
     //     match (self, params) {

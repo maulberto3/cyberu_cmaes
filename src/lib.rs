@@ -5,6 +5,7 @@ use anyhow::Result;
 // use fitness::square_and_sum;
 
 mod params;
+use ndarray::Array2;
 use params::CMAESInitParams;
 
 // mod states;
@@ -25,8 +26,10 @@ pub fn work() -> Result<()> {
     let init_params = CMAESInitParams {
         mean: vec![0.0, 1.0, 2.0],
         sigma: 1.0,
-        n_max_resampling: None,
-        popsize: None,
+        n_max_resampling: None, // Some(100)
+        seed: None,             // Some(16)
+        popsize: None,          // Some(50)
+        cov: None,              // Some(Array2::eye(3)),
     };
     let init_params = CMAESInitParams::new(init_params)?;
     dbg!(&init_params);
