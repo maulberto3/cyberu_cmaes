@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use ndarray::Array2;
 // use ndarray::Array1;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CMAESInitParams {
     pub mean: Vec<f32>,
     pub sigma: f32,
@@ -15,26 +15,24 @@ pub struct CMAESInitParams {
 }
 
 impl CMAESInitParams {
-    pub fn new(mut init_params: CMAESInitParams) -> Result<Self> {
+    pub fn validate(mut self) -> Result<Self> {
         // Default values when None supplied...
-        init_params.n_max_resampling = Some(init_params.n_max_resampling.unwrap_or(100));
-        init_params.seed = Some(init_params.seed.unwrap_or(16));
-        let num_dims = init_params.mean.len() as i32;
-        init_params.popsize = Some(
-            init_params
-                .popsize
+        self.n_max_resampling = Some(self.n_max_resampling.unwrap_or(100));
+        self.seed = Some(self.seed.unwrap_or(16));
+        let num_dims = self.mean.len() as i32;
+        self.popsize = Some(
+            self.popsize
                 .unwrap_or_else(|| CMAESInitParams::calculate_popsize(&num_dims)),
         );
-        init_params.cov = Some(init_params.cov.unwrap_or(Array2::eye(num_dims as usize)));
+        self.cov = Some(self.cov.unwrap_or(Array2::eye(num_dims as usize)));
 
         // ... and validate initial parameters
-        init_params
-            .validate_init_params()
+        self.validate_params()
             .expect("An initial CMAES parameter is not following its constraint");
-        Ok(init_params)
+        Ok(self)
     }
 
-    fn validate_init_params(&self) -> Result<()> {
+    fn validate_params(&self) -> Result<()> {
         if self.sigma <= 0.0 {
             return Err(anyhow!("==> sigma must be > 0.0."));
         }
@@ -63,31 +61,4 @@ impl CMAESInitParams {
     fn calculate_popsize(n_dim: &i32) -> i32 {
         4 + (3.0 * (*n_dim as f32).ln()).floor() as i32
     }
-
-    // let num_dims = self.mean.len() as i32;
-    // let popsize = match self.popsize {
-    //     Some(popsize) if popsize > 5 => popsize,
-    //     // None => Self::calculate_popsize(&num_dims)?,
-    //     Some(_) => Err(anyhow!("popsize must be > 5")),
-    //     };
 }
-
-// #[derive(Debug)]
-// pub enum Params {
-//     CMAES(CMAESParams),
-//     OtherParams,
-// }
-
-// #[derive(Debug)]
-// pub struct CMAESParams {
-//     pub mu: i32,
-//     pub sigma: f32,
-// }
-
-// impl CMAESParams {
-//     pub fn default_params(popsize: &i32, sigma: &f32) -> Result<CMAESParams> {
-//         validate_params(popsize, sigma)?;
-//         let mu = popsize / 2;
-//         let sigma = sigma.clone();
-//         Ok(CMAESParams { mu, sigma})
-//     }

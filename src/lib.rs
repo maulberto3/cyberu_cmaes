@@ -5,8 +5,9 @@ use anyhow::Result;
 // use fitness::square_and_sum;
 
 mod params;
-use ndarray::Array2;
+// use ndarray::Array2;
 use params::CMAESInitParams;
+use strategies::CMAES;
 
 // mod states;
 
@@ -22,8 +23,8 @@ mod strategies;
 /// `anyhow::Result` may be used with one *or* two type parameters.
 ///
 pub fn work() -> Result<()> {
-    // Step 1: Choose Algorithm
-    let init_params = CMAESInitParams {
+    // Step 1: Choose initial parameters
+    let mut init_params = CMAESInitParams {
         mean: vec![0.0, 1.0, 2.0],
         sigma: 1.0,
         n_max_resampling: None, // Some(100)
@@ -31,27 +32,31 @@ pub fn work() -> Result<()> {
         popsize: None,          // Some(50)
         cov: None,              // Some(Array2::eye(3)),
     };
-    let init_params = CMAESInitParams::new(init_params)?;
-    dbg!(&init_params);
-    // let open_es = Algo::CMAES();
+    init_params = init_params.validate()?;
+    // dbg!(&init_params);
+
+    // STEP 2: Create CMAES algorithm
+    let cmaes = CMAES::new(init_params)?;
+    // dbg!(&cmaes);
+    dbg!(&cmaes.init_params);
 
     // // Step 2: Get its (default) Parmeters and...
-    // let params = open_es.default_params();
+    // let params = cmaes.default_params();
     // dbg!(&params);
 
     // // Step 3: Initiate its State
-    // let mut state = open_es.init_algorithm(&params);
+    // let mut state = cmaes.init_algorithm(&params);
     // // println!("{:+6.4?}", &state);
 
     // // Step 4: Ask-Tell
     // for _ in 0..100 {
-    //     let pop: Array2<f32> = open_es.ask(&state, &params);
+    //     let pop: Array2<f32> = cmaes.ask(&state, &params);
     //     println!("{:+.4}", &pop);
 
     //     let fitness: Array2<f32> = square_and_sum(&pop);
     //     println!("{:+.4}", &fitness);
 
-    //     state = open_es.tell(pop, fitness, state, &params);
+    //     state = cmaes.tell(pop, fitness, state, &params);
     //     println!("{:+.4?}", &state);
     //     println!("");
     // }
@@ -59,9 +64,9 @@ pub fn work() -> Result<()> {
 
     // let num_iters = 7;
     // for _i in 0..num_iters {
-    // pop, state = open_es.ask(state);
+    // pop, state = cmaes.ask(state);
     // fit = fitness(&pop);
-    // state = open_es.tell(state, &pop, &fit, &params);
+    // state = cmaes.tell(state, &pop, &fit, &params);
     // state.best_member, state.best_fitness
 
     //     break;
