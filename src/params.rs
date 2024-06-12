@@ -16,7 +16,20 @@ pub struct CMAESInitParams {
 
 impl CMAESInitParams {
     pub fn validate(mut self) -> Result<Self> {
-        // Default values when None supplied...
+        println!("Computing default values for `None` initial parameters...");
+        self.create_init_params()?;
+        println!("...done.\n");
+
+        println!("Validating intial parameters...");
+        // TODO: refactor to match and handle Err gracefully
+        // expect panics
+        self.validate_init_params()
+            .expect("An initial CMAES parameter is not following its constraint");
+        println!("...done.\n");
+        Ok(self)
+    }
+
+    fn create_init_params(&mut self) -> Result<()> {
         self.n_max_resampling = Some(self.n_max_resampling.unwrap_or(100));
         self.seed = Some(self.seed.unwrap_or(16));
         let num_dims = self.mean.len() as i32;
@@ -24,31 +37,52 @@ impl CMAESInitParams {
             self.popsize
                 .unwrap_or_else(|| CMAESInitParams::calculate_popsize(&num_dims)),
         );
-        self.cov = Some(self.cov.unwrap_or(Array2::eye(num_dims as usize)));
+        self.cov = Some(self.cov.take().unwrap_or(Array2::eye(num_dims as usize)));
+        Ok(())
+        }
 
-        // ... and validate initial parameters
-        self.validate_params()
-            .expect("An initial CMAES parameter is not following its constraint");
-        Ok(self)
+    fn validate_init_params(&self) -> Result<()> {
+        self.check_sigma()?;
+        self.check_mean_length()?;
+        self.check_n_max_resampling()?;
+        self.check_popsize()?;
+        self.check_covariance_matrix()?;
+        Ok(())
     }
 
-    fn validate_params(&self) -> Result<()> {
+    fn check_sigma(&self) -> Result<()> {
         if self.sigma <= 0.0 {
             return Err(anyhow!("==> sigma must be > 0.0."));
         }
-        if self.mean.len() as i32 <= 1 {
+        Ok(())
+    }
+
+    fn check_mean_length(&self) -> Result<()> {
+        if self.mean.len() <= 1 {
             return Err(anyhow!("==> number of dimensions must be > 1."));
         }
+        Ok(())
+    }
+
+    fn check_n_max_resampling(&self) -> Result<()> {
         if let Some(n_max_resampling) = self.n_max_resampling {
             if n_max_resampling <= 1 {
                 return Err(anyhow!("==> n_max_resampling must be > 1."));
             }
         }
+        Ok(())
+    }
+
+    fn check_popsize(&self) -> Result<()> {
         if let Some(popsize) = self.popsize {
             if popsize <= 5 {
                 return Err(anyhow!("==> popsize must be > 5."));
             }
         }
+        Ok(())
+    }
+
+    fn check_covariance_matrix(&self) -> Result<()> {
         if let Some(cov) = &self.cov {
             let shape = cov.shape();
             if shape[0] != self.mean.len() || shape[1] != self.mean.len() {

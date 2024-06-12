@@ -15,6 +15,7 @@ pub struct CMAES {
 
 impl CMAES {
     pub fn new(init_params: CMAESInitParams) -> Result<Self> {
+        let init_params = init_params.validate()?;
         Ok(CMAES { init_params })
     }
 
