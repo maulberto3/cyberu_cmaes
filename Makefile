@@ -30,3 +30,6 @@ test:
 	
 rel:
 	clear && cargo run --release
+
+graph-dep:
+	clear && cargo depgraph --all-deps | dot -Tpng > graph.png
