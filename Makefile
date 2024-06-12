@@ -32,4 +32,5 @@ rel:
 	clear && cargo run --release
 
 graph-dep:
+	# graphviz must be installed: sudo apt install graphviz
 	clear && cargo depgraph --all-deps | dot -Tpng > graph.png
