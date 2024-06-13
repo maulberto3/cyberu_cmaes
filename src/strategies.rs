@@ -2,33 +2,54 @@
 // use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
 
 use anyhow::Result;
+use ndarray::Array1;
 
-use crate::{
-    params::CMAESInitParams,
-    // states::{CMAESState, State},
-};
+use crate::params::{CMAESInitParams, CMAESMoreParams};
 
 #[derive(Debug)]
 pub struct CMAES {
     pub init_params: CMAESInitParams,
+    pub more_params: Option<CMAESMoreParams>,
 }
 
 impl CMAES {
     pub fn new(init_params: CMAESInitParams) -> Result<Self> {
-        let init_params = init_params.validate()?;
-        Ok(CMAES { init_params })
+        let init_params = init_params
+            .validate()?;
+        let algo = CMAES{ init_params, more_params: None }
+            .gen_more_params()?;
+        Ok( algo )
     }
 
-    // pub fn init_algorithm(&self, params: &Params) -> State {
-    //     match (self, params) {
-    //         (Algo::CMAES(_, num_dims), Params::CMAES(_)) => {
-    //             State::CMAES(CMAESState::init_state(num_dims, params))
-    //         }
-    //         _ => State::OtherState,
-    //     }
+    fn gen_more_params(mut self) -> Result<Self> {
+        let b: Vec<f32> = vec![1., 2., 3.];
+        self.more_params = Some(CMAESMoreParams{ b });
+        // TODO: under this setting create more params
+        // for now everyting needed for eigen_decomp method
+        Ok(self)
+    }
+
+    // fn init_algorithm(mut self) -> Result<Self> {
+    //     let algo = match self {
+    //         CMAES{ init_params } => {
+    //             self._B = vec![1, 2, 3, 4, 5, 6, 7, 8];
+    //         },
+    //         _ => unreachable!("can't reach")
+    //     };
+    //     Ok(algo)
     // }
 
-    // pub fn ask(&self, state: &State, params: &Params) -> Array2<f32> {
+    // pub fn ask_one(&self, state: &State, params: &Params) -> Result<Array1<f32>> {
+    //     let (B, D) = self.eigen_decomposition();
+
+    // }
+
+    // fn eigen_decomposition(&self) -> Result<Array1<f32>, Array1<f32>> {
+    //     if self._B and self._D is not None:
+    //         return self._B, self._D
+
+
+    // }
 
     // def ask(self) -> np.ndarray:
     // """Sample a parameter"""

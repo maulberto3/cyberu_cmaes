@@ -16,16 +16,23 @@ pub struct CMAESInitParams {
 
 impl CMAESInitParams {
     pub fn validate(mut self) -> Result<Self> {
-        println!("Computing default values for `None` initial parameters...");
+        print!("Computing default values for `None` initial parameters... ");
         self.create_init_params()?;
-        println!("...done.\n");
+        println!("Done.\n");
 
-        println!("Validating intial parameters...");
+        print!("Validating initial parameters... ");
         // TODO: refactor to match and handle Err gracefully
         // expect panics
-        self.validate_init_params()
-            .expect("An initial CMAES parameter is not following its constraint");
-        println!("...done.\n");
+        match self.validate_init_params() {
+            Ok(_) => {
+                println!(" Done.\n")
+            }
+            Err(e) => {
+                eprint!("An initial CMAES parameter is not following its constraint: ");
+                eprintln!("{} \n", e);
+                panic!();
+            }
+        }
         Ok(self)
     }
 
@@ -39,7 +46,7 @@ impl CMAESInitParams {
         );
         self.cov = Some(self.cov.take().unwrap_or(Array2::eye(num_dims as usize)));
         Ok(())
-        }
+    }
 
     fn validate_init_params(&self) -> Result<()> {
         self.check_sigma()?;
@@ -95,4 +102,10 @@ impl CMAESInitParams {
     fn calculate_popsize(n_dim: &i32) -> i32 {
         4 + (3.0 * (*n_dim as f32).ln()).floor() as i32
     }
+}
+
+
+#[derive(Debug, Clone)]
+pub struct CMAESMoreParams {
+    pub b: Vec<f32>,
 }
