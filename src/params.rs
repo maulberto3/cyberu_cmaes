@@ -1,5 +1,4 @@
 use anyhow::{anyhow, Result};
-// use ndarray::Array1;
 
 #[derive(Debug, Clone)]
 pub struct CmaesParams {
@@ -15,7 +14,7 @@ pub struct CmaesParams {
 impl CmaesParams {
     pub fn validate(mut self) -> Result<Self> {
         print!("Computing default values for `None` initial parameters... ");
-        self.create_init_params()?;
+        self.create_default_init_params()?;
         println!("Done.\n");
 
         print!("Validating initial parameters... ");
@@ -34,7 +33,7 @@ impl CmaesParams {
         Ok(self)
     }
 
-    fn create_init_params(&mut self) -> Result<()> {
+    fn create_default_init_params(&mut self) -> Result<()> {
         // self.n_max_resampling = Some(self.n_max_resampling.unwrap_or(100));
         self.seed = Some(self.seed.unwrap_or(16));
         let num_dims = self.mean.len() as i32;

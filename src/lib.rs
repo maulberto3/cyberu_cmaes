@@ -5,11 +5,12 @@ use anyhow::Result;
 
 mod params;
 use params::CmaesParams;
-use strategy::Cmaes;
 
 mod state;
+use state::CmaesState;
 
 mod strategy;
+use strategy::Cmaes;
 
 /// `Result<T, Error>`
 ///
@@ -30,19 +31,13 @@ pub fn work() -> Result<()> {
     };
     dbg!(&params);
 
-    // STEP 2: Instantiate Cmaes algorithm with intial parameters
-    let cmaes = Cmaes::new(params)?;
+    // STEP 2: Instantiate Cmaes algorithm with parameters
+    let cmaes = Cmaes::new(&params)?;
     dbg!(&cmaes);
 
-    // let _ = cmaes.ask_one();
-
-    // // Step 2: Get its (default) Parmeters and...
-    // let params = cmaes.default_params();
-    // dbg!(&params);
-
-    // // Step 3: Initiate its State
-    // let mut state = cmaes.init_algorithm(&params);
-    // // println!("{:+6.4?}", &state);
+    // // Step 3: Instantiate a Cmaes State
+    let mut state = CmaesState::init_state(&params)?;
+    // println!("{:+6.4?}", &state);
 
     // // Step 4: Ask-Tell
     // for _ in 0..100 {

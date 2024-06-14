@@ -1,6 +1,8 @@
 use anyhow::Result;
 use ndarray::{Array1, Array2};
 
+use crate::params::CmaesParams;
+
 #[derive(Debug, Clone)]
 pub struct CmaesState {
     pub cov: Option<Array2<f32>>,
@@ -9,7 +11,7 @@ pub struct CmaesState {
 }
 
 impl CmaesState {
-    pub fn set_up_initial_state() -> Result<CmaesState> {
+    pub fn init_state(params: &CmaesParams) -> Result<CmaesState> {
         let cov: Option<Array2<f32>> = None;
         let b: Option<Array1<f32>> = None;
         let d: Option<Array1<f32>> = None;

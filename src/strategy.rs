@@ -4,21 +4,19 @@
 use anyhow::Result;
 
 use crate::params::CmaesParams;
-use crate::state::CmaesState;
+// use crate::state::CmaesState;
 
 #[derive(Debug)]
 pub struct Cmaes {
     pub params: CmaesParams,
-    pub state: CmaesState,
+    // pub state: CmaesState,
 }
 
 impl Cmaes {
-    pub fn new(params: CmaesParams) -> Result<Self> {
+    pub fn new(params: &CmaesParams) -> Result<Self> {
         // Validate initial parameters
-        let params = params.validate()?;
-        // Set up initial state
-        let state = CmaesState::set_up_initial_state()?;
-        Ok(Cmaes { params, state })
+        let params = params.clone().validate()?;
+        Ok(Cmaes { params })
     }
 
     // fn eigen_decomposition(&mut self) -> Result<()> {
