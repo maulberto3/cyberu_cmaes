@@ -3,18 +3,18 @@ use ndarray::Array2;
 // use ndarray::Array1;
 
 #[derive(Debug, Clone)]
-pub struct CMAESInitParams {
+pub struct CmaesInitParams {
     pub mean: Vec<f32>,
     pub sigma: f32,
     // optional init parameters
     // pub bounds
-    pub n_max_resampling: Option<i32>,
+    // pub n_max_resampling: Option<i32>,
     pub seed: Option<i32>,
     pub popsize: Option<i32>,
     pub cov: Option<Array2<f32>>,
 }
 
-impl CMAESInitParams {
+impl CmaesInitParams {
     pub fn validate(mut self) -> Result<Self> {
         print!("Computing default values for `None` initial parameters... ");
         self.create_init_params()?;
@@ -28,7 +28,7 @@ impl CMAESInitParams {
                 println!(" Done.\n")
             }
             Err(e) => {
-                eprint!("An initial CMAES parameter is not following its constraint: ");
+                eprint!("An initial Cmaes parameter is not following its constraint: ");
                 eprintln!("{} \n", e);
                 panic!();
             }
@@ -37,12 +37,12 @@ impl CMAESInitParams {
     }
 
     fn create_init_params(&mut self) -> Result<()> {
-        self.n_max_resampling = Some(self.n_max_resampling.unwrap_or(100));
+        // self.n_max_resampling = Some(self.n_max_resampling.unwrap_or(100));
         self.seed = Some(self.seed.unwrap_or(16));
         let num_dims = self.mean.len() as i32;
         self.popsize = Some(
             self.popsize
-                .unwrap_or_else(|| CMAESInitParams::calculate_popsize(&num_dims)),
+                .unwrap_or_else(|| CmaesInitParams::calculate_popsize(&num_dims)),
         );
         self.cov = Some(self.cov.take().unwrap_or(Array2::eye(num_dims as usize)));
         Ok(())
@@ -51,7 +51,7 @@ impl CMAESInitParams {
     fn validate_init_params(&self) -> Result<()> {
         self.check_sigma()?;
         self.check_mean_length()?;
-        self.check_n_max_resampling()?;
+        // self.check_n_max_resampling()?;
         self.check_popsize()?;
         self.check_covariance_matrix()?;
         Ok(())
@@ -71,14 +71,14 @@ impl CMAESInitParams {
         Ok(())
     }
 
-    fn check_n_max_resampling(&self) -> Result<()> {
-        if let Some(n_max_resampling) = self.n_max_resampling {
-            if n_max_resampling <= 1 {
-                return Err(anyhow!("==> n_max_resampling must be > 1."));
-            }
-        }
-        Ok(())
-    }
+    // fn check_n_max_resampling(&self) -> Result<()> {
+    //     if let Some(n_max_resampling) = self.n_max_resampling {
+    //         if n_max_resampling <= 1 {
+    //             return Err(anyhow!("==> n_max_resampling must be > 1."));
+    //         }
+    //     }
+    //     Ok(())
+    // }
 
     fn check_popsize(&self) -> Result<()> {
         if let Some(popsize) = self.popsize {
@@ -104,8 +104,7 @@ impl CMAESInitParams {
     }
 }
 
-
 #[derive(Debug, Clone)]
-pub struct CMAESMoreParams {
+pub struct CmaesAddParams {
     pub b: Vec<f32>,
 }

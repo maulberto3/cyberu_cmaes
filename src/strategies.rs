@@ -4,50 +4,54 @@
 use anyhow::Result;
 use ndarray::Array1;
 
-use crate::params::{CMAESInitParams, CMAESMoreParams};
+use crate::params::{CmaesAddParams, CmaesInitParams};
 
 #[derive(Debug)]
-pub struct CMAES {
-    pub init_params: CMAESInitParams,
-    pub more_params: Option<CMAESMoreParams>,
+pub struct Cmaes {
+    pub init_params: CmaesInitParams,
+    pub more_params: Option<CmaesAddParams>,
 }
 
-impl CMAES {
-    pub fn new(init_params: CMAESInitParams) -> Result<Self> {
-        let init_params = init_params
-            .validate()?;
-        let algo = CMAES{ init_params, more_params: None }
-            .gen_more_params()?;
-        Ok( algo )
+impl Cmaes {
+    pub fn new(init_params: CmaesInitParams) -> Result<Self> {
+        // Validate initial parameters
+        let init_params = init_params.validate()?;
+        // Set up additional parameters
+        let algo = Cmaes {
+            init_params,
+            more_params: None,
+        }
+        .set_up_additional_params()?;
+        Ok(algo)
     }
 
-    fn gen_more_params(mut self) -> Result<Self> {
+    fn set_up_additional_params(mut self) -> Result<Self> {
         let b: Vec<f32> = vec![1., 2., 3.];
-        self.more_params = Some(CMAESMoreParams{ b });
+        self.more_params = Some(CmaesAddParams { b });
         // TODO: under this setting create more params
         // for now everyting needed for eigen_decomp method
         Ok(self)
     }
 
-    // fn init_algorithm(mut self) -> Result<Self> {
-    //     let algo = match self {
-    //         CMAES{ init_params } => {
-    //             self._B = vec![1, 2, 3, 4, 5, 6, 7, 8];
-    //         },
-    //         _ => unreachable!("can't reach")
-    //     };
-    //     Ok(algo)
-    // }
+    fn eigen_decomposition(&mut self) -> Result<()> {
+        // Ensure syummetric covariance
+        self.init_params.cov = self
+            .init_params
+            .cov
+            .as_ref()
+            .map(|cov| (cov + &cov.t()) / 2.0);
+        println!("{:?}", self.init_params.cov);
+        Ok(())
+    }
 
-    // pub fn ask_one(&self, state: &State, params: &Params) -> Result<Array1<f32>> {
-    //     let (B, D) = self.eigen_decomposition();
-
-    // }
+    pub fn ask_one(&mut self) -> Result<()> {
+        let _ = self.eigen_decomposition();
+        Ok(())
+    }
 
     // fn eigen_decomposition(&self) -> Result<Array1<f32>, Array1<f32>> {
     //     if self._B and self._D is not None:
     //         return self._B, self._D
-
 
     // }
 

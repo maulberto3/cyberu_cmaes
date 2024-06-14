@@ -6,8 +6,8 @@ use anyhow::Result;
 
 mod params;
 // use ndarray::Array2;
-use params::CMAESInitParams;
-use strategies::CMAES;
+use params::CmaesInitParams;
+use strategies::Cmaes;
 
 // mod states;
 
@@ -24,21 +24,22 @@ mod strategies;
 ///
 pub fn work() -> Result<()> {
     // Step 1: Choose initial parameters
-    let init_params = CMAESInitParams {
+    let init_params = CmaesInitParams {
         mean: vec![0.0, 1.0, 2.0],
         sigma: 1.0,
-        n_max_resampling: None, // Some(100)
-        seed: None,             // Some(16)
-        popsize: None,          // Some(50)
-        cov: None,              // Some(Array2::eye(3)),
+        // n_max_resampling: None, // Some(100)
+        seed: None,    // Some(16)
+        popsize: None, // Some(50)
+        cov: None,     // Some(Array2::eye(3)),
     };
     // init_params = init_params.validate()?;  // encapsulated inside algo
     // dbg!(&init_params);
 
-    // STEP 2: Instantiate CMAES algorithm with intial parameters
-    let cmaes = CMAES::new(init_params)?;
+    // STEP 2: Instantiate Cmaes algorithm with intial parameters
+    let mut cmaes = Cmaes::new(init_params)?;
     // dbg!(&cmaes);
-    dbg!(&cmaes);
+
+    let _ = cmaes.ask_one();
 
     // // Step 2: Get its (default) Parmeters and...
     // let params = cmaes.default_params();
