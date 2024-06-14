@@ -1,9 +1,8 @@
 use anyhow::{anyhow, Result};
-use ndarray::Array2;
 // use ndarray::Array1;
 
 #[derive(Debug, Clone)]
-pub struct CmaesInitParams {
+pub struct CmaesParams {
     pub mean: Vec<f32>,
     pub sigma: f32,
     // optional init parameters
@@ -11,10 +10,9 @@ pub struct CmaesInitParams {
     // pub n_max_resampling: Option<i32>,
     pub seed: Option<i32>,
     pub popsize: Option<i32>,
-    pub cov: Option<Array2<f32>>,
 }
 
-impl CmaesInitParams {
+impl CmaesParams {
     pub fn validate(mut self) -> Result<Self> {
         print!("Computing default values for `None` initial parameters... ");
         self.create_init_params()?;
@@ -42,9 +40,8 @@ impl CmaesInitParams {
         let num_dims = self.mean.len() as i32;
         self.popsize = Some(
             self.popsize
-                .unwrap_or_else(|| CmaesInitParams::calculate_popsize(&num_dims)),
+                .unwrap_or_else(|| CmaesParams::calculate_popsize(&num_dims)),
         );
-        self.cov = Some(self.cov.take().unwrap_or(Array2::eye(num_dims as usize)));
         Ok(())
     }
 
@@ -53,7 +50,6 @@ impl CmaesInitParams {
         self.check_mean_length()?;
         // self.check_n_max_resampling()?;
         self.check_popsize()?;
-        self.check_covariance_matrix()?;
         Ok(())
     }
 
@@ -89,22 +85,7 @@ impl CmaesInitParams {
         Ok(())
     }
 
-    fn check_covariance_matrix(&self) -> Result<()> {
-        if let Some(cov) = &self.cov {
-            let shape = cov.shape();
-            if shape[0] != self.mean.len() || shape[1] != self.mean.len() {
-                return Err(anyhow!("Invalid shape of covariance matrix"));
-            }
-        }
-        Ok(())
-    }
-
     fn calculate_popsize(n_dim: &i32) -> i32 {
         4 + (3.0 * (*n_dim as f32).ln()).floor() as i32
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct CmaesAddParams {
-    pub b: Vec<f32>,
 }

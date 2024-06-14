@@ -2,52 +2,47 @@
 // use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
 
 use anyhow::Result;
-use ndarray::Array1;
 
-use crate::params::{CmaesAddParams, CmaesInitParams};
+use crate::params::CmaesParams;
+use crate::state::CmaesState;
 
 #[derive(Debug)]
 pub struct Cmaes {
-    pub init_params: CmaesInitParams,
-    pub more_params: Option<CmaesAddParams>,
+    pub params: CmaesParams,
+    pub state: CmaesState,
 }
 
 impl Cmaes {
-    pub fn new(init_params: CmaesInitParams) -> Result<Self> {
+    pub fn new(params: CmaesParams) -> Result<Self> {
         // Validate initial parameters
-        let init_params = init_params.validate()?;
-        // Set up additional parameters
-        let algo = Cmaes {
-            init_params,
-            more_params: None,
-        }
-        .set_up_additional_params()?;
-        Ok(algo)
+        let params = params.validate()?;
+        // Set up initial state
+        let state = CmaesState::set_up_initial_state()?;
+        Ok(Cmaes { params, state })
     }
 
-    fn set_up_additional_params(mut self) -> Result<Self> {
-        let b: Vec<f32> = vec![1., 2., 3.];
-        self.more_params = Some(CmaesAddParams { b });
-        // TODO: under this setting create more params
-        // for now everyting needed for eigen_decomp method
-        Ok(self)
-    }
+    // fn eigen_decomposition(&mut self) -> Result<()> {
+    //     // Update eigen decomposition only once prior to first ask of pop
+    //     match (self.add_params.b, self.add_params.d) {
+    //         (Some(b), Some(d)) => (self.add_params.b, self.add_params.d),
+    //         (_) => {
+    //             if self.b. is not None and self.d is not None:
+    //                 return self._B, self._D
+    //             // Ensure symmetric covariance
+    //             self.init_params.cov = self
+    //                 .init_params
+    //                 .cov
+    //                 .as_ref()
+    //                 .map(|cov| (cov + &cov.t()) / 2.0);
+    //             println!("{:?}", self.init_params.cov);
+    //         }
+    //     Ok(())
+    // }
 
-    fn eigen_decomposition(&mut self) -> Result<()> {
-        // Ensure syummetric covariance
-        self.init_params.cov = self
-            .init_params
-            .cov
-            .as_ref()
-            .map(|cov| (cov + &cov.t()) / 2.0);
-        println!("{:?}", self.init_params.cov);
-        Ok(())
-    }
-
-    pub fn ask_one(&mut self) -> Result<()> {
-        let _ = self.eigen_decomposition();
-        Ok(())
-    }
+    // pub fn ask_one(&mut self) -> Result<()> {
+    //     let _ = self.eigen_decomposition();
+    //     Ok(())
+    // }
 
     // fn eigen_decomposition(&self) -> Result<Array1<f32>, Array1<f32>> {
     //     if self._B and self._D is not None:

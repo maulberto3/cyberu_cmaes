@@ -1,18 +1,15 @@
 use anyhow::Result;
-// use ndarray::Array2;
 
 // mod fitness;
 // use fitness::square_and_sum;
 
 mod params;
-// use ndarray::Array2;
-use params::CmaesInitParams;
-use strategies::Cmaes;
+use params::CmaesParams;
+use strategy::Cmaes;
 
-// mod states;
+mod state;
 
-mod strategies;
-// use strategies::Algo;
+mod strategy;
 
 /// `Result<T, Error>`
 ///
@@ -24,22 +21,20 @@ mod strategies;
 ///
 pub fn work() -> Result<()> {
     // Step 1: Choose initial parameters
-    let init_params = CmaesInitParams {
+    let params = CmaesParams {
         mean: vec![0.0, 1.0, 2.0],
         sigma: 1.0,
         // n_max_resampling: None, // Some(100)
         seed: None,    // Some(16)
         popsize: None, // Some(50)
-        cov: None,     // Some(Array2::eye(3)),
     };
-    // init_params = init_params.validate()?;  // encapsulated inside algo
-    // dbg!(&init_params);
+    dbg!(&params);
 
     // STEP 2: Instantiate Cmaes algorithm with intial parameters
-    let mut cmaes = Cmaes::new(init_params)?;
-    // dbg!(&cmaes);
+    let cmaes = Cmaes::new(params)?;
+    dbg!(&cmaes);
 
-    let _ = cmaes.ask_one();
+    // let _ = cmaes.ask_one();
 
     // // Step 2: Get its (default) Parmeters and...
     // let params = cmaes.default_params();
