@@ -3,7 +3,7 @@
 
 use anyhow::Result;
 
-use crate::params::CmaesParams;
+use crate::{params::CmaesParams, state::CmaesState};
 // use crate::state::CmaesState;
 
 #[derive(Debug)]
@@ -17,6 +17,22 @@ impl Cmaes {
         // Validate initial parameters
         let params = params.clone().validate()?;
         Ok(Cmaes { params })
+    }
+
+    pub fn ask_one(self, params: &CmaesParams, state: CmaesState) -> Result<()> {
+        let _ = self.eigen_decomposition(state);
+        Ok(())
+    }
+
+    fn eigen_decomposition(&self, mut state: CmaesState) -> Result<()> {
+        if (state.b != None) & (state.d != None) {
+            (state.b, state.d);
+        } else {
+            // Ensure symmetric covariance
+            state.cov = (&state.cov + &state.cov.t()) / 2.0;
+            println!("{:?}", state.cov);
+        }
+        Ok(())
     }
 
     // fn eigen_decomposition(&mut self) -> Result<()> {
@@ -36,18 +52,6 @@ impl Cmaes {
     //         }
     //     Ok(())
     // }
-
-    // pub fn ask_one(&mut self) -> Result<()> {
-    //     let _ = self.eigen_decomposition();
-    //     Ok(())
-    // }
-
-    // fn eigen_decomposition(&self) -> Result<Array1<f32>, Array1<f32>> {
-    //     if self._B and self._D is not None:
-    //         return self._B, self._D
-
-    // }
-
     // def ask(self) -> np.ndarray:
     // """Sample a parameter"""
     // for i in range(self._n_max_resampling):

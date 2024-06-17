@@ -5,14 +5,14 @@ use crate::params::CmaesParams;
 
 #[derive(Debug, Clone)]
 pub struct CmaesState {
-    pub cov: Option<Array2<f32>>,
+    pub cov: Array2<f32>,
     pub b: Option<Array1<f32>>,
     pub d: Option<Array1<f32>>,
 }
 
 impl CmaesState {
     pub fn init_state(params: &CmaesParams) -> Result<CmaesState> {
-        let cov: Option<Array2<f32>> = None;
+        let cov: Array2<f32> = Array2::eye(params.mean.len());
         let b: Option<Array1<f32>> = None;
         let d: Option<Array1<f32>> = None;
         Ok(CmaesState { cov, b, d })

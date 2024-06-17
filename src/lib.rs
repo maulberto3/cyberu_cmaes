@@ -29,17 +29,18 @@ pub fn work() -> Result<()> {
         seed: None,    // Some(16)
         popsize: None, // Some(50)
     };
-    dbg!(&params);
+    // dbg!(&params);
 
     // STEP 2: Instantiate Cmaes algorithm with parameters
     let cmaes = Cmaes::new(&params)?;
-    dbg!(&cmaes);
+    // dbg!(&cmaes);
 
     // // Step 3: Instantiate a Cmaes State
-    let mut state = CmaesState::init_state(&params)?;
-    // println!("{:+6.4?}", &state);
+    let state = CmaesState::init_state(&params)?;
+    // dbg!(&state);
 
     // // Step 4: Ask-Tell
+    let indiv = cmaes.ask_one(&params, state)?;
     // for _ in 0..100 {
     //     let pop: Array2<f32> = cmaes.ask(&state, &params);
     //     println!("{:+.4}", &pop);
