@@ -2,6 +2,7 @@
 // use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
 
 use anyhow::Result;
+use ndarray_linalg::Eig;
 
 use crate::{params::CmaesParams, state::CmaesState};
 // use crate::state::CmaesState;
@@ -30,8 +31,18 @@ impl Cmaes {
         } else {
             // Ensure symmetric covariance
             state.cov = (&state.cov + &state.cov.t()) / 2.0;
-            println!("{:?}", state.cov);
+            let (eigs, vecs) = state.cov.eig().unwrap();
+            println!("{:+.4?}", eigs);
+            println!("{:+.4?}", vecs);
         }
+
+        // D2, B = np.linalg.eigh(self._C)
+        // D = np.sqrt(np.where(D2 < 0, _EPS, D2))
+        // self._C = np.dot(np.dot(B, np.diag(D**2)), B.T)
+
+        // self._B, self._D = B, D
+        // return B, D
+
         Ok(())
     }
 
