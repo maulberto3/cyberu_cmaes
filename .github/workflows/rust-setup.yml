@@ -12,11 +12,29 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
+      # Use Github Actions logic
       - uses: actions/checkout@v2
 
       # Install system dependencies
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y libopenblas-dev
+
+      # Cache
+      - name: Cache Cargo registry
+        uses: actions/cache@v2
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+
+      - name: Cache Cargo build
+        uses: actions/cache@v2
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-
 
       # Set up Rust
       - name: Set up Rust
@@ -24,16 +42,17 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-      
-      # Install dependencies task
-      - name: Install dependencies
-        run: cargo build 
-      
+
+      # Install cargo package cargo-depgraph
+      - name: Install cargo
+        run: cargo install cargo-depgraph
+
+      # Prepare    
+      - name: Format the code
+        run: make prep
+
       # Run your rust test 
       - name: Set up terminal
         run: echo "TERM=xterm" >> $GITHUB_ENV
       - name: Run tests
         run: cargo test
-      # Add more rust commands as needed 
-
-      # Run your test functions files ...
