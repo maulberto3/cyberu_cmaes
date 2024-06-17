@@ -36,7 +36,7 @@ fn main() {
     //     .collect();
     // println!("Scan result: {:?}", scan_result);
 
-    use blas_src;
+    // use blas_src;
     use ndarray::prelude::*;
     use ndarray::Array;
 
