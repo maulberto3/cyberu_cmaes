@@ -25,16 +25,12 @@ impl Cmaes {
         Ok(Cmaes { params })
     }
 
-    pub fn prepare_ask(
-        self,
-        // params: &CmaesParams,
-        state: CmaesState,
-    ) -> Result<()> {
+    pub fn prepare_ask(&self, state: &mut CmaesState) -> Result<()> {
         let _ = self.eigen_decomposition(state);
         Ok(())
     }
 
-    fn eigen_decomposition(&self, mut state: CmaesState) -> Result<()> {
+    fn eigen_decomposition(&self, state: &mut CmaesState) -> Result<()> {
         // Ensure symmetric covariance
         state.cov = (&state.cov + &state.cov.t()) / 2.0;
 
@@ -63,16 +59,10 @@ impl Cmaes {
         state.vecs = vecs;
         state.eigvs = eigvs;
 
-        // self._C = (self._C + self._C.T) / 2
-        // D2, B = np.linalg.eigh(self._C)
-        // D = np.sqrt(np.where(D2 < 0, _EPS, D2))
-        // self._C = np.dot(np.dot(B, np.diag(D**2)), B.T)
-
-        // self._B, self._D = B, D
-        // return B, D
-
         Ok(())
     }
+
+    // pub fn ask_one(&self, state: &)
 
     // fn eigen_decomposition(&mut self) -> Result<()> {
     //     // Update eigen decomposition only once prior to first ask of pop
