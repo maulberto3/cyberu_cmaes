@@ -5,10 +5,16 @@ edition = "2021"
 
 [dependencies]
 anyhow = { version = "1.0.86" }
-ndarray = { version = "0.15", features = ["rayon"] }
+
+ndarray = { version = "0.15", features = ["blas"] }
+blas-src = { version = "0.10", features = ["openblas"] }
+openblas-src = { version = "0.10", features = ["cblas", "system"] }
+
+ndarray-linalg = { version = "0.16", features = ["openblas-system"] }
+
 ndarray-rand = { version = "0.14"}
-ndarray-linalg = { version = "0.16" }
 rand = { version = "0.8.5" }
 rayon = { version = "1.10.0" }
 
-# blas-src = { version = "0.9", features = ["openblas"] }
+
+
