@@ -13,15 +13,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      # minimal conf to run rust in ubuntu
+
+      # Install system dependencies
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libopenblas-dev
+
+      # Set up Rust
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
+      
       # Install dependencies task
       - name: Install dependencies
         run: cargo build 
+      
       # Run your rust test 
       - name: Set up terminal
         run: echo "TERM=xterm" >> $GITHUB_ENV
