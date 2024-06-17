@@ -15,7 +15,7 @@ pub struct CmaesState {
 impl CmaesState {
     pub fn init_state(params: &CmaesParams) -> Result<CmaesState> {
         // let cov: Array2<f32> = Array2::eye(params.mean.len());
-        let cov: Array2<f32> = Array2::<f32>::random(
+        let cov: Array2<f32> = Array2::random(
             (params.mean.len(), params.mean.len()),
             Uniform::<f32>::new(-1.0, 1.0),
         );
