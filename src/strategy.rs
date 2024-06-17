@@ -3,6 +3,7 @@
 
 use anyhow::Result;
 use ndarray::{Array1, Array2};
+use blas_src;
 use ndarray_linalg::Eig;
 
 use crate::{params::CmaesParams, state::CmaesState};
