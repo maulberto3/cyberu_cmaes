@@ -35,15 +35,17 @@ pub fn work() -> Result<()> {
     let cmaes = Cmaes::new(&params)?;
     // dbg!(&cmaes);
 
-    // // Step 3: Instantiate a Cmaes State
+    // Step 3: Instantiate a Cmaes State
     let mut state = CmaesState::init_state(&params)?;
     // dbg!(&state);
 
-    // // Step 4: Ask-Tell
-    _ = cmaes.prepare_ask(
-        // &params,
-        &mut state,
-    );
+    // Step 4: Prepare state
+    state.prepare_ask();
+
+    // Ask one
+    let indiv = cmaes.ask_one(&params)?;
+    dbg!(&indiv);
+
     // for _ in 0..100 {
     //     let pop: Array2<f32> = cmaes.ask(&state, &params);
     //     println!("{:+.4}", &pop);

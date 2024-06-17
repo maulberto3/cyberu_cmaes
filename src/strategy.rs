@@ -5,11 +5,10 @@ use anyhow::Result;
 
 #[allow(unused_imports)]
 use blas_src;
+use ndarray::Array2;
+use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
 
-use ndarray::{Array1, Array2};
-use ndarray_linalg::Eig;
-
-use crate::{params::CmaesParams, state::CmaesState};
+use crate::params::CmaesParams;
 // use crate::state::CmaesState;
 
 #[derive(Debug)]
@@ -25,44 +24,11 @@ impl Cmaes {
         Ok(Cmaes { params })
     }
 
-    pub fn prepare_ask(&self, state: &mut CmaesState) -> Result<()> {
-        let _ = self.eigen_decomposition(state);
-        Ok(())
+    pub fn ask_one(&self, params: &CmaesParams) -> Result<Array2<f32>> {
+        // Sample from normal and rotate towards eigen
+        let z: Array2<f32> = Array2::random((params.mean.len(), params.mean.len()), StandardNormal);
+        Ok(z)
     }
-
-    fn eigen_decomposition(&self, state: &mut CmaesState) -> Result<()> {
-        // Ensure symmetric covariance
-        state.cov = (&state.cov + &state.cov.t()) / 2.0;
-
-        // Get eigenvalues and eigenvectors of covariance matrix
-        let (eigvs_2, vecs) = state.cov.eig().unwrap();
-
-        // Extract real parts of eigenvalues and eigenvectors
-        let eigvs_2: Array1<f32> = eigvs_2.map(|eig| eig.re);
-        let vecs: Array2<f32> = vecs.map(|vec| vec.re);
-
-        // Convert to positive numbers (negative magnitudes dropped)
-        let mut eigvs = eigvs_2.clone();
-        eigvs.map_inplace(|elem| {
-            if *elem < 0.0 {
-                *elem = f32::EPSILON
-            }
-        });
-        // Take sqrt of them
-        eigvs.map_inplace(|elem| *elem = elem.sqrt());
-
-        // Rotate
-        state.cov = vecs
-            .dot(&Array2::from_diag(&eigvs.map(|elem| elem.powi(2))))
-            .dot(&vecs.t());
-
-        state.vecs = vecs;
-        state.eigvs = eigvs;
-
-        Ok(())
-    }
-
-    // pub fn ask_one(&self, state: &)
 
     // fn eigen_decomposition(&mut self) -> Result<()> {
     //     // Update eigen decomposition only once prior to first ask of pop
