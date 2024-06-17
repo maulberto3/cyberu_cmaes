@@ -98,8 +98,16 @@ Similarly, all but configuration:
 *ndarray = { version = "0.15", features = ["blas"] }
 blas-src = { version = "0.10", features = ["openblas"] }
 openblas-src = { version = "0.10", features = ["cblas", "system"] }*
+ndarray-linalg = { version = "0.16", features = ["openblas-system"] }
 
 And also doing `use blas_src;` is the onlyway to make ndarray work with blas.
+
+Remember to install cargo depgraph global package:
+`cargo install cargo-depgraph`
+
+That must also have to have graphviz installed previously
+`sudo apt install graphviz`
+
 
 
 
