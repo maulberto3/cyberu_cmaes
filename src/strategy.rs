@@ -2,6 +2,7 @@
 // use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
 
 use anyhow::Result;
+use ndarray::{Array1, Array2};
 use ndarray_linalg::Eig;
 
 use crate::{params::CmaesParams, state::CmaesState};
@@ -32,8 +33,13 @@ impl Cmaes {
             // Ensure symmetric covariance
             state.cov = (&state.cov + &state.cov.t()) / 2.0;
             let (eigs, vecs) = state.cov.eig().unwrap();
-            println!("{:+.4?}", eigs);
-            println!("{:+.4?}", vecs);
+
+            // Extract real parts of eigenvalues and eigenvectors
+            let real_eigs: Array1<f32> = eigs.map(|eig| eig.re);
+            let real_vecs: Array2<f32> = vecs.map(|vec| vec.re);
+
+            println!("{:+.4?}", &real_eigs);
+            println!("{:+.4?}", &real_vecs);
         }
 
         // D2, B = np.linalg.eigh(self._C)
