@@ -40,7 +40,10 @@ pub fn work() -> Result<()> {
     // dbg!(&state);
 
     // // Step 4: Ask-Tell
-    let indiv = cmaes.ask_one(&params, state)?;
+    _ = cmaes.prepare_ask(
+        // &params,
+        state,
+    );
     // for _ in 0..100 {
     //     let pop: Array2<f32> = cmaes.ask(&state, &params);
     //     println!("{:+.4}", &pop);

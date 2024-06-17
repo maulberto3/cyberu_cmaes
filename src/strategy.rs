@@ -2,8 +2,11 @@
 // use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
 
 use anyhow::Result;
-use ndarray::{Array1, Array2};
+
+#[allow(unused_imports)]
 use blas_src;
+
+use ndarray::{Array1, Array2};
 use ndarray_linalg::Eig;
 
 use crate::{params::CmaesParams, state::CmaesState};
@@ -22,27 +25,45 @@ impl Cmaes {
         Ok(Cmaes { params })
     }
 
-    pub fn ask_one(self, params: &CmaesParams, state: CmaesState) -> Result<()> {
+    pub fn prepare_ask(
+        self,
+        // params: &CmaesParams,
+        state: CmaesState,
+    ) -> Result<()> {
         let _ = self.eigen_decomposition(state);
         Ok(())
     }
 
     fn eigen_decomposition(&self, mut state: CmaesState) -> Result<()> {
-        if (state.b != None) & (state.d != None) {
-            (state.b, state.d);
-        } else {
-            // Ensure symmetric covariance
-            state.cov = (&state.cov + &state.cov.t()) / 2.0;
-            let (eigs, vecs) = state.cov.eig().unwrap();
+        // Ensure symmetric covariance
+        state.cov = (&state.cov + &state.cov.t()) / 2.0;
 
-            // Extract real parts of eigenvalues and eigenvectors
-            let real_eigs: Array1<f32> = eigs.map(|eig| eig.re);
-            let real_vecs: Array2<f32> = vecs.map(|vec| vec.re);
+        // Get eigenvalues and eigenvectors of covariance matrix
+        let (eigvs_2, vecs) = state.cov.eig().unwrap();
 
-            println!("{:+.4?}", &real_eigs);
-            println!("{:+.4?}", &real_vecs);
-        }
+        // Extract real parts of eigenvalues and eigenvectors
+        let eigvs_2: Array1<f32> = eigvs_2.map(|eig| eig.re);
+        let vecs: Array2<f32> = vecs.map(|vec| vec.re);
 
+        // Convert to positive numbers (negative magnitudes dropped)
+        let mut eigvs = eigvs_2.clone();
+        eigvs.map_inplace(|elem| {
+            if *elem < 0.0 {
+                *elem = f32::EPSILON
+            }
+        });
+        // Take sqrt of them
+        eigvs.map_inplace(|elem| *elem = elem.sqrt());
+
+        // Rotate
+        state.cov = vecs
+            .dot(&Array2::from_diag(&eigvs.map(|elem| elem.powi(2))))
+            .dot(&vecs.t());
+
+        state.vecs = vecs;
+        state.eigvs = eigvs;
+
+        // self._C = (self._C + self._C.T) / 2
         // D2, B = np.linalg.eigh(self._C)
         // D = np.sqrt(np.where(D2 < 0, _EPS, D2))
         // self._C = np.dot(np.dot(B, np.diag(D**2)), B.T)
