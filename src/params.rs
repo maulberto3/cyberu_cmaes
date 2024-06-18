@@ -7,7 +7,7 @@ pub struct CmaesParams {
     // optional init parameters
     // pub bounds
     // pub n_max_resampling: Option<i32>,
-    pub seed: Option<i32>,
+    // pub seed: Option<u64>,
     pub popsize: Option<i32>,
 }
 
@@ -15,14 +15,12 @@ impl CmaesParams {
     pub fn validate(mut self) -> Result<Self> {
         print!("Computing default values for `None` initial parameters... ");
         self.create_default_init_params()?;
-        println!("Done.\n");
+        println!("Done.");
 
         print!("Validating initial parameters... ");
-        // TODO: refactor to match and handle Err gracefully
-        // expect panics
         match self.validate_init_params() {
             Ok(_) => {
-                println!(" Done.\n")
+                println!(" Done.")
             }
             Err(e) => {
                 eprint!("An initial Cmaes parameter is not following its constraint: ");
@@ -34,17 +32,19 @@ impl CmaesParams {
     }
 
     fn create_default_init_params(&mut self) -> Result<()> {
+        // Impute default values when None supplied
         // self.n_max_resampling = Some(self.n_max_resampling.unwrap_or(100));
-        self.seed = Some(self.seed.unwrap_or(16));
+        // self.seed = Some(self.seed.unwrap_or(16));
         let num_dims = self.mean.len() as i32;
         self.popsize = Some(
             self.popsize
-                .unwrap_or_else(|| CmaesParams::calculate_popsize(&num_dims)),
+                .unwrap_or_else(|| CmaesParams::calculate_popsize(&num_dims).unwrap()),
         );
         Ok(())
     }
 
     fn validate_init_params(&self) -> Result<()> {
+        // Check that the initial parameters hold their constraints
         self.check_sigma()?;
         self.check_mean_length()?;
         // self.check_n_max_resampling()?;
@@ -84,7 +84,7 @@ impl CmaesParams {
         Ok(())
     }
 
-    fn calculate_popsize(n_dim: &i32) -> i32 {
-        4 + (3.0 * (*n_dim as f32).ln()).floor() as i32
+    fn calculate_popsize(num_dims: &i32) -> Result<i32> {
+        Ok(4 + (3.0 * (*num_dims as f32).ln()).floor() as i32)
     }
 }

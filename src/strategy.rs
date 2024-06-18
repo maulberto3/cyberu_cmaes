@@ -1,14 +1,9 @@
-// use ndarray::{s, Array2};
-// use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
-
 use anyhow::Result;
 
-#[allow(unused_imports)]
-use blas_src;
-use ndarray::Array2;
+use ndarray::{Array1, Array2};
 use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
 
-use crate::params::CmaesParams;
+use crate::{params::CmaesParams, state::CmaesState};
 // use crate::state::CmaesState;
 
 #[derive(Debug)]
@@ -19,15 +14,23 @@ pub struct Cmaes {
 
 impl Cmaes {
     pub fn new(params: &CmaesParams) -> Result<Self> {
-        // Validate initial parameters
+        // Instantiate Cmaes
         let params = params.clone().validate()?;
         Ok(Cmaes { params })
     }
 
-    pub fn ask_one(&self, params: &CmaesParams) -> Result<Array2<f32>> {
-        // Sample from normal and rotate towards eigen
-        let z: Array2<f32> = Array2::random((params.mean.len(), params.mean.len()), StandardNormal);
-        Ok(z)
+    pub fn ask_one(&self, params: &CmaesParams, state: &CmaesState) -> Result<Array1<f32>> {
+        // Generate one individual from params and current state
+        // z ~ N(0, I)
+        let z: Array1<f32> = Array1::random((params.mean.len(),), StandardNormal);
+
+        // Rotate towards eigen i.e. y = B * D_diag * z
+        let y = &state.vecs.dot(&Array2::from_diag(&state.eigvs)).dot(&z);
+
+        // Scale and translate i.e. x = μ + σ * y
+        let x = &state.mean + y.map(|elem| elem * state.sigma);
+
+        Ok(x)
     }
 
     // fn eigen_decomposition(&mut self) -> Result<()> {

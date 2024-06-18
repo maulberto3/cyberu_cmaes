@@ -1,5 +1,8 @@
 use anyhow::Result;
 
+#[allow(unused_imports)]
+use blas_src;
+
 // mod fitness;
 // use fitness::square_and_sum;
 
@@ -23,10 +26,9 @@ use strategy::Cmaes;
 pub fn work() -> Result<()> {
     // Step 1: Choose initial parameters
     let params = CmaesParams {
-        mean: vec![0.0, 1.0, 2.0],
+        mean: vec![0.0, 1.0, 2.0, 1.5],
+        // mean: vec![0.0; 20],
         sigma: 1.0,
-        // n_max_resampling: None, // Some(100)
-        seed: None,    // Some(16)
         popsize: None, // Some(50)
     };
     // dbg!(&params);
@@ -40,10 +42,10 @@ pub fn work() -> Result<()> {
     // dbg!(&state);
 
     // Step 4: Prepare state
-    state.prepare_ask();
+    state.prepare_ask()?;
 
     // Ask one
-    let indiv = cmaes.ask_one(&params)?;
+    let indiv = cmaes.ask_one(&params, &state)?;
     dbg!(&indiv);
 
     // for _ in 0..100 {
