@@ -49,11 +49,10 @@ pub fn work() -> Result<()> {
     println!("{:+.4?}", &pop);
 
     // Step 6: Eval
-    let fit = square_and_sum(&pop);
+    let fit = square_and_sum(&pop.xs)?;
     println!("{:+.4?}", &fit);
 
     // Ste 7: Tell
-    
 
     // for _ in 0..100 {
     //     let pop: Array2<f32> = cmaes.ask(&state, &params);

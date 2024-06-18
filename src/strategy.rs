@@ -2,7 +2,7 @@ use std::io::{self, Stdout, Write};
 
 use anyhow::Result;
 
-use ndarray::{Axis, Array1, Array2};
+use ndarray::{Array1, Array2, Axis};
 use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
 
 use crate::{params::CmaesParams, state::CmaesState};
@@ -14,6 +14,16 @@ pub struct Cmaes {
     // pub state: CmaesState,
 }
 
+#[derive(Debug)]
+pub struct Individual {
+    pub x: Array1<f32>,
+}
+
+#[derive(Debug)]
+pub struct Population {
+    pub xs: Array2<f32>,
+}
+
 impl Cmaes {
     pub fn new(params: &CmaesParams) -> Result<Self> {
         // Instantiate Cmaes
@@ -21,7 +31,7 @@ impl Cmaes {
         Ok(Cmaes { params })
     }
 
-    fn ask_one(&self, params: &CmaesParams, state: &CmaesState) -> Result<Array1<f32>> {
+    fn ask_one(&self, params: &CmaesParams, state: &CmaesState) -> Result<Individual> {
         // Generate one individual from params and current state
         // z ~ N(0, I)
         let z: Array1<f32> = Array1::random((params.mean.len(),), StandardNormal);
@@ -32,18 +42,21 @@ impl Cmaes {
         // Scale and translate i.e. x = μ + σ * y
         let x = &state.mean + y.map(|elem| elem * state.sigma);
 
-        Ok(x)
+        Ok(Individual { x })
     }
 
-    pub fn ask(&self, params: &CmaesParams, state: &CmaesState) -> Result<Array2<f32>> {
-        let mut pop: Array2<f32> = Array2::zeros((self.params.popsize.unwrap() as usize, self.params.mean.len() as usize));
-        
-        for i in 0..self.params.popsize.unwrap() {
-            let indiv: Array1<f32> = self.ask_one(params, state)?;
-            pop.row_mut(i as usize).assign(&indiv); // Assign individual to population matrix
+    pub fn ask(&self, params: &CmaesParams, state: &CmaesState) -> Result<Population> {
+        let popsize = self.params.popsize.unwrap();
+
+        let mut xs: Array2<f32> =
+            Array2::zeros((popsize as usize, self.params.mean.len() as usize));
+
+        for i in 0..popsize {
+            let indiv: Individual = self.ask_one(params, state)?;
+            xs.row_mut(i as usize).assign(&indiv.x); // Assign individual to population matrix
         }
 
-        Ok(pop)
+        Ok(Population { xs })
     }
 
     // TODO
@@ -78,15 +91,15 @@ impl Cmaes {
     // as suggested in repo example, attached above
     // If ask_one is independent, try to paralellize
 
+    // pub fn tell(&self, params: &CmaesParams, state: &CmaesState, pop: &Population, fitness: &fit)
+
     // TODO
     // fn ask() -> ...
 
     // TODO
     // Adjust given fitness values
     // pub fn tell(&self, &params, &mut state, indiv: Array2<f32>, fitness: Array2<f32>) -> Result<()> {
-    
-    
-    
+
     //     Ok(())
     // }
 
@@ -94,5 +107,4 @@ impl Cmaes {
     // Reset required variables for next pop
     // pub fn after_tell(...) {
     // }
-
 }

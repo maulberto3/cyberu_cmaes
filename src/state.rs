@@ -18,7 +18,7 @@ pub struct CmaesState {
 }
 
 impl CmaesState {
-    pub fn init_state(params: &CmaesParams) -> Result<CmaesState> {
+    pub fn init_state(params: &CmaesParams) -> Result<Self> {
         // Create initial values for the state
         print!("Creating a new state... ");
         // let cov: Array2<f32> = Array2::eye(params.mean.len());
