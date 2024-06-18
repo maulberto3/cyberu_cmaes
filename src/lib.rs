@@ -3,8 +3,8 @@ use anyhow::Result;
 #[allow(unused_imports)]
 use blas_src;
 
-// mod fitness;
-// use fitness::square_and_sum;
+mod fitness;
+use fitness::square_and_sum;
 
 mod params;
 use params::CmaesParams;
@@ -44,9 +44,16 @@ pub fn work() -> Result<()> {
     // Step 4: Prepare state
     state.prepare_ask()?;
 
-    // Ask
+    // Step 5: Ask
     let pop = cmaes.ask(&params, &state)?;
-    dbg!(&pop);
+    println!("{:+.4?}", &pop);
+
+    // Step 6: Eval
+    let fit = square_and_sum(&pop);
+    println!("{:+.4?}", &fit);
+
+    // Ste 7: Tell
+    
 
     // for _ in 0..100 {
     //     let pop: Array2<f32> = cmaes.ask(&state, &params);
