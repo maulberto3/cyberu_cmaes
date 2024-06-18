@@ -33,78 +33,49 @@ impl Cmaes {
         Ok(x)
     }
 
-    // fn eigen_decomposition(&mut self) -> Result<()> {
-    //     // Update eigen decomposition only once prior to first ask of pop
-    //     match (self.add_params.b, self.add_params.d) {
-    //         (Some(b), Some(d)) => (self.add_params.b, self.add_params.d),
-    //         (_) => {
-    //             if self.b. is not None and self.d is not None:
-    //                 return self._B, self._D
-    //             // Ensure symmetric covariance
-    //             self.init_params.cov = self
-    //                 .init_params
-    //                 .cov
-    //                 .as_ref()
-    //                 .map(|cov| (cov + &cov.t()) / 2.0);
-    //             println!("{:?}", self.init_params.cov);
-    //         }
-    //     Ok(())
-    // }
-    // def ask(self) -> np.ndarray:
-    // """Sample a parameter"""
-    // for i in range(self._n_max_resampling):
-    //     x = self._sample_solution()
-    //     if self._is_feasible(x):
-    //         return x
-    // x = self._sample_solution()
-    // x = self._repair_infeasible_params(x)
-    // return x
+    // TODO
+    // Whether the draw individual is within bounds supplied
+    // If not, re-draw given self._n_max_resampling, or
+    // ultimately, just clip values within bounds
+    // fn _is_feasible()
+    // fn _repair_infeasible_params
 
-    // def _sample_solution(self) -> np.ndarray:
-    //     B, D = self._eigen_decomposition()
-    //     z = self._rng.randn(self._n_dim)  # ~ N(0, I)
-    //     y = cast(np.ndarray, B.dot(np.diag(D))).dot(z)  # ~ N(0, C)
-    //     x = self._mean + self._sigma * y  # ~ N(m, σ^2 C)
-    //     return x
+    // TODO
+    // As per repo example:
+    // ```
+    // def main():
+    //     optimizer = CMA(mean=np.zeros(2), sigma=1.3)
+    //     print(" g    f(x1,x2)     x1      x2  ")
+    //     print("===  ==========  ======  ======")
+    //     while True:
+    //         solutions = []
+    //         for _ in range(optimizer.population_size):
+    //             x = optimizer.ask()
+    //             value = quadratic(x[0], x[1])
+    //             solutions.append((x, value))
+    //             print(
+    //                 f"{optimizer.generation:3d}  {value:10.5f}"
+    //                 f"  {x[0]:6.2f}  {x[1]:6.2f}"
+    //             )
+    //         optimizer.tell(solutions)
+    //         if optimizer.should_stop():
+    //             break
+    // ```
+    // TODO: make one go for population, no loop
+    // as suggested in repo example, attached above
+    // If ask_one is independent, try to paralellize
 
-    // def _eigen_decomposition(self) -> tuple[np.ndarray, np.ndarray]:
-    //     if self._B is not None and self._D is not None:
-    //         return self._B, self._D
+    // TODO
+    // fn ask() -> ...
 
-    //     self._C = (self._C + self._C.T) / 2
-    //     D2, B = np.linalg.eigh(self._C)
-    //     D = np.sqrt(np.where(D2 < 0, _EPS, D2))
-    //     self._C = np.dot(np.dot(B, np.diag(D**2)), B.T)
-
-    //     self._B, self._D = B, D
-    //     return B, D
-
-    // def _is_feasible(self, param: np.ndarray) -> bool:
-    //     if self._bounds is None:
-    //         return True
-    //     return cast(
-    //         bool,
-    //         np.all(param >= self._bounds[:, 0]) and np.all(param <= self._bounds[:, 1]),
-    //     )  # Cast bool_ to bool.
-
-    // def _repair_infeasible_params(self, param: np.ndarray) -> np.ndarray:
-    //     if self._bounds is None:
-    //         return param
-
-    //     # clip with lower and upper bound.
-    //     param = np.where(param < self._bounds[:, 0], self._bounds[:, 0], param)
-    //     param = np.where(param > self._bounds[:, 1], self._bounds[:, 1], param)
-    //     return param
-
-    //     Array2::from_shape_vec((2, 2), vec![1., 2., 3., 4.]).unwrap()
+    // TODO
+    // Adjust given fitness values
+    // pub fn tell(&self, &params, &mut state, indiv: Array2<f32>, fitness: Array2<f32>) -> {
     // }
 
-    // pub fn tell(
-    //     &self,
-    //     pop: Array2<f32>,
-    //     fitness: Array2<f32>,
-    //     state: State,
-    //     params: &Params,
-    // ) -> State {
-    //     }
+    // TODO
+    // Reset required variables for next pop
+    // pub fn after_tell(...) {
+    // }
+
 }
