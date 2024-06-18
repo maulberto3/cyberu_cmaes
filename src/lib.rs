@@ -35,7 +35,7 @@ pub fn work() -> Result<()> {
 
     // STEP 2: Instantiate Cmaes algorithm with parameters
     let cmaes = Cmaes::new(&params)?;
-    // dbg!(&cmaes);
+    // dbg!(&cmaes.params);
 
     // Step 3: Instantiate a Cmaes State
     let mut state = CmaesState::init_state(&params)?;
@@ -44,9 +44,9 @@ pub fn work() -> Result<()> {
     // Step 4: Prepare state
     state.prepare_ask()?;
 
-    // Ask one
-    let indiv = cmaes.ask_one(&params, &state)?;
-    dbg!(&indiv);
+    // Ask
+    let pop = cmaes.ask(&params, &state)?;
+    dbg!(&pop);
 
     // for _ in 0..100 {
     //     let pop: Array2<f32> = cmaes.ask(&state, &params);

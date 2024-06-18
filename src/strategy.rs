@@ -1,6 +1,8 @@
+use std::io::{self, Stdout, Write};
+
 use anyhow::Result;
 
-use ndarray::{Array1, Array2};
+use ndarray::{Axis, Array1, Array2};
 use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
 
 use crate::{params::CmaesParams, state::CmaesState};
@@ -19,7 +21,7 @@ impl Cmaes {
         Ok(Cmaes { params })
     }
 
-    pub fn ask_one(&self, params: &CmaesParams, state: &CmaesState) -> Result<Array1<f32>> {
+    fn ask_one(&self, params: &CmaesParams, state: &CmaesState) -> Result<Array1<f32>> {
         // Generate one individual from params and current state
         // z ~ N(0, I)
         let z: Array1<f32> = Array1::random((params.mean.len(),), StandardNormal);
@@ -31,6 +33,17 @@ impl Cmaes {
         let x = &state.mean + y.map(|elem| elem * state.sigma);
 
         Ok(x)
+    }
+
+    pub fn ask(&self, params: &CmaesParams, state: &CmaesState) -> Result<Array2<f32>> {
+        let mut pop: Array2<f32> = Array2::zeros((self.params.popsize.unwrap() as usize, self.params.mean.len() as usize));
+        
+        for i in 0..self.params.popsize.unwrap() {
+            let indiv: Array1<f32> = self.ask_one(params, state)?;
+            pop.row_mut(i as usize).assign(&indiv); // Assign individual to population matrix
+        }
+
+        Ok(pop)
     }
 
     // TODO
@@ -70,7 +83,11 @@ impl Cmaes {
 
     // TODO
     // Adjust given fitness values
-    // pub fn tell(&self, &params, &mut state, indiv: Array2<f32>, fitness: Array2<f32>) -> {
+    // pub fn tell(&self, &params, &mut state, indiv: Array2<f32>, fitness: Array2<f32>) -> Result<()> {
+    
+    
+    
+    //     Ok(())
     // }
 
     // TODO
