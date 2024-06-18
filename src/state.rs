@@ -56,8 +56,8 @@ impl CmaesState {
         let (eigvs_2, vecs) = self.cov.eig().unwrap();
 
         // Extract real parts of eigenvalues and eigenvectors
-        let eigvs_2: Array1<f32> = eigvs_2.map(|eig| eig.re);
-        let vecs: Array2<f32> = vecs.map(|vec| vec.re);
+        let eigvs_2: Array1<f32> = eigvs_2.mapv(|eig| eig.re);
+        let vecs: Array2<f32> = vecs.mapv(|vec| vec.re);
 
         // Convert to positive numbers (negative magnitudes dropped)
         // And take sqrt of them i.e. D = sqrt(max(Λ, 0))
@@ -71,7 +71,7 @@ impl CmaesState {
 
         // Reconstruct the covariance matrix: C = B * diag(Λ) * B^T
         self.cov = vecs
-            .dot(&Array2::from_diag(&eigvs.map(|elem| elem.powi(2))))
+            .dot(&Array2::from_diag(&eigvs.mapv(|elem| elem.powi(2))))
             .dot(&vecs.t());
 
         self.vecs = vecs;

@@ -49,7 +49,7 @@ pub fn work() -> Result<()> {
     println!("{:+.4?}", &pop);
 
     // Step 6: Eval
-    let fit = square_and_sum(&pop.xs)?;
+    let fit = square_and_sum(&pop)?;
     println!("{:+.4?}", &fit);
 
     // Ste 7: Tell

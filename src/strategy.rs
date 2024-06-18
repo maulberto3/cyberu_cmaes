@@ -1,8 +1,6 @@
-use std::io::{self, Stdout, Write};
-
 use anyhow::Result;
 
-use ndarray::{Array1, Array2, Axis};
+use ndarray::{Array1, Array2};
 use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
 
 use crate::{params::CmaesParams, state::CmaesState};
@@ -40,7 +38,7 @@ impl Cmaes {
         let y = &state.vecs.dot(&Array2::from_diag(&state.eigvs)).dot(&z);
 
         // Scale and translate i.e. x = μ + σ * y
-        let x = &state.mean + y.map(|elem| elem * state.sigma);
+        let x = &state.mean + y.mapv(|elem| elem * state.sigma);
 
         Ok(Individual { x })
     }
