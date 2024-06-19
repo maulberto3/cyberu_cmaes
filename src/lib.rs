@@ -24,6 +24,8 @@ use strategy::Cmaes;
 /// `anyhow::Result` may be used with one *or* two type parameters.
 ///
 pub fn work() -> Result<()> {
+    // Simple Illustrative Algorithm Usage
+
     // Step 1: Choose initial parameters
     let params = CmaesParams {
         mean: vec![0.0, 1.0, 2.0, 1.5],
@@ -42,17 +44,28 @@ pub fn work() -> Result<()> {
     // dbg!(&state);
 
     // Step 4: Prepare state
+    // TODO: try to encapsulate out of user interface i.e. self.prepare_ask...
     state.prepare_ask()?;
+    // println!("{:+.4?}", &state);
 
     // Step 5: Ask
     let pop = cmaes.ask(&params, &state)?;
     println!("{:+.4?}", &pop);
+    println!("\n");
 
     // Step 6: Eval
-    let fit = square_and_sum(&pop)?;
-    println!("{:+.4?}", &fit);
+    let fitness = square_and_sum(&pop)?;
+    println!("{:+.4?}", &fitness);
+    println!("\n");
 
-    // Ste 7: Tell
+    // Step 7: Tell
+    state = cmaes.tell(&params, state, &pop, &fitness)?;
+    println!("{:+.4?}", &state);
+    println!("\n");
+
+    // Repeat steps 5-7
+    // let fitness = square_and_sum(&pop)?;
+    // println!("{:+.4?}", &fit);
 
     // for _ in 0..100 {
     //     let pop: Array2<f32> = cmaes.ask(&state, &params);
@@ -63,7 +76,7 @@ pub fn work() -> Result<()> {
 
     //     state = cmaes.tell(pop, fitness, state, &params);
     //     println!("{:+.4?}", &state);
-    //     println!("");
+    //     println!("\n");
     // }
     // println!("{:+.4?}", &state);
 

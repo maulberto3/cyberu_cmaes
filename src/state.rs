@@ -14,6 +14,7 @@ pub struct CmaesState {
     pub eigvs: Array1<f32>,
     pub mean: Array1<f32>,
     pub sigma: f32,
+    pub g: usize,
     // pub rng: StdRng,
 }
 
@@ -30,6 +31,7 @@ impl CmaesState {
         let eigvs: Array1<f32> = Array::from_elem((params.mean.len(),), 1.0);
         let mean: Array1<f32> = Array1::from_vec(params.mean.clone());
         let sigma: f32 = params.sigma;
+        let g: usize = 0;
         println!("Done.");
         Ok(CmaesState {
             cov,
@@ -37,6 +39,7 @@ impl CmaesState {
             eigvs,
             mean,
             sigma,
+            g,
         })
     }
 
@@ -48,7 +51,7 @@ impl CmaesState {
         Ok(())
     }
 
-    fn eigen_decomposition(&mut self) -> () {
+    fn eigen_decomposition(&mut self) {
         // Ensure symmetric covariance
         self.cov = (&self.cov + &self.cov.t()) / 2.0;
 

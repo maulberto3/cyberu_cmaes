@@ -1,9 +1,9 @@
 use anyhow::Result;
 
-use ndarray::{Array1, Array2};
+use ndarray::{Array1, Array2, Axis};
 use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
 
-use crate::{params::CmaesParams, state::CmaesState};
+use crate::{fitness::Fitness, params::CmaesParams, state::CmaesState};
 // use crate::state::CmaesState;
 
 #[derive(Debug)]
@@ -12,12 +12,12 @@ pub struct Cmaes {
     // pub state: CmaesState,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Individual {
     pub x: Array1<f32>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Population {
     pub xs: Array2<f32>,
 }
@@ -57,6 +57,56 @@ impl Cmaes {
         Ok(Population { xs })
     }
 
+    pub fn tell(
+        &self,
+        params: &CmaesParams,
+        mut state: CmaesState,
+        pop: &Population,
+        fitness: &Fitness,
+    ) -> Result<CmaesState> {
+        // Increment step count
+        state.g += 1;
+
+        // Sort population according to fitness
+        let mut xs = pop.to_owned();
+        // TODO: do the sort
+
+        // Own current data
+        let _vecs = state.vecs.to_owned();
+        let _eigvs = state.eigvs.to_owned();
+        // let (old_mean, old_sigma, old_Sigma, old_invsqrtC) = None, None, None, None;
+
+        // Get underlying normal draw for each individual
+        xs.xs.axis_iter_mut(Axis(0)).for_each(|mut row| {
+            row -= &state.mean;
+            row /= state.sigma;
+        });
+
+        // Selection and recombination
+
+        // Step-size
+
+        // Covariance matrix adaption
+
+        // (eq.45)
+
+        // (eq.46)
+
+        // (eq.47)
+
+        // Learning rate adaptation (enhancement)
+
+        // println!("{:?}", state);
+        // println!("\n");
+
+        Ok(state)
+    }
+
+    // TODO
+    // Reset required variables for next pop
+    // pub fn after_tell(...) {
+    // }
+
     // TODO
     // Whether the draw individual is within bounds supplied
     // If not, re-draw given self._n_max_resampling, or
@@ -88,21 +138,4 @@ impl Cmaes {
     // TODO: make one go for population, no loop
     // as suggested in repo example, attached above
     // If ask_one is independent, try to paralellize
-
-    // pub fn tell(&self, params: &CmaesParams, state: &CmaesState, pop: &Population, fitness: &fit)
-
-    // TODO
-    // fn ask() -> ...
-
-    // TODO
-    // Adjust given fitness values
-    // pub fn tell(&self, &params, &mut state, indiv: Array2<f32>, fitness: Array2<f32>) -> Result<()> {
-
-    //     Ok(())
-    // }
-
-    // TODO
-    // Reset required variables for next pop
-    // pub fn after_tell(...) {
-    // }
 }
