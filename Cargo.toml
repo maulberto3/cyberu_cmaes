@@ -12,7 +12,8 @@ ndarray = { version = "0.15", features = ["blas", "rayon"] }
 blas-src = { version = "0.10", features = ["openblas"] }
 openblas-src = { version = "0.10", features = ["cblas", "system"] }
 ndarray-linalg = { version = "0.16", features = ["openblas-system"] }
-ndarray-rand = { version = "0.14"}
+ndarray-rand = { version = "0.14" }
+ndarray-stats = { version = "0.5.1" }
 
 
 
