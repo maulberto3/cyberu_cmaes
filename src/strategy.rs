@@ -43,7 +43,15 @@ impl Cmaes {
         Ok(Individual { x })
     }
 
-    pub fn ask(&self, params: &CmaesParams, state: &CmaesState) -> Result<Population> {
+    pub fn ask(
+        &self,
+        params: &CmaesParams,
+        state: &mut CmaesState,
+        counter: usize,
+    ) -> Result<Population> {
+        if counter == 0 {
+            state.prepare_ask()?
+        }
         let popsize = self.params.popsize.unwrap();
 
         let mut xs: Array2<f32> =
