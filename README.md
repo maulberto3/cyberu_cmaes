@@ -41,11 +41,7 @@ To use `OpenBLAS system-wide` for ndarray and others, install the `libopenblas-d
 
 `sudo apt install libopenblas-dev`
 
-### Checking OpenBLAS Installation
-
-To verify where OpenBLAS is installed:
-
-`dpkg-query -L libopenblas-dev`
+If you want to check where did it got installed `dpkg-query -L libopenblas-dev`
 
 ## Additional Tools
 
