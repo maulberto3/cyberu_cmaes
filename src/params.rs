@@ -2,9 +2,10 @@ use anyhow::{anyhow, Result};
 
 #[derive(Debug, Clone)]
 pub struct CmaesParams {
+    // Required
     pub mean: Vec<f32>,
     pub sigma: f32,
-    // optional init parameters
+    // Optional
     // pub bounds
     // pub n_max_resampling: Option<i32>,
     // pub seed: Option<u64>,
