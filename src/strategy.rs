@@ -3,12 +3,12 @@ use anyhow::Result;
 use ndarray::{Array1, Array2, Axis};
 use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
 
-use crate::{fitness::Fitness, params::CmaesParams, state::CmaesState};
+use crate::{fitness::Fitness, params::{CmaesParams, CmaesParams_}, state::CmaesState};
 // use crate::state::CmaesState;
 
 #[derive(Debug)]
 pub struct Cmaes {
-    pub params: CmaesParams,
+    pub params: CmaesParams_,
     // pub state: CmaesState,
 }
 
@@ -25,7 +25,7 @@ pub struct Population {
 impl Cmaes {
     pub fn new(params: &CmaesParams) -> Result<Self> {
         // Instantiate Cmaes
-        let params = params.clone().validate()?;
+        let params = CmaesParams_::validate(params)?;
         Ok(Cmaes { params })
     }
 
@@ -52,7 +52,7 @@ impl Cmaes {
         state.prepare_ask()?;
 
         // Create population
-        let popsize = self.params.popsize.unwrap();
+        let popsize = self.params.popsize;
         let mut xs: Array2<f32> =
             Array2::zeros((popsize as usize, self.params.mean.len() as usize));
         for i in 0..popsize {

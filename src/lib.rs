@@ -32,8 +32,7 @@ pub fn work() -> Result<()> {
         mean: vec![0.0, 1.0, 2.0, 1.5],
         // mean: vec![0.0; 20],
         sigma: 1.0,
-        // Optional
-        popsize: None, // Some(50)
+        popsize: 5,
     };
     // dbg!(&params);
 
@@ -45,7 +44,6 @@ pub fn work() -> Result<()> {
     let mut state = CmaesState::init_state(&params)?;
     // println!("{:+.4?}", &state);
     // println!("\n");
-
 
     // Step 4: Ask
     let mut pop = cmaes.ask(&params, &mut state)?;
