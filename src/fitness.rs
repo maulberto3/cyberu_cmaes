@@ -3,7 +3,7 @@ use ndarray::{Array1, Axis};
 
 use crate::strategy::Population;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Fitness {
     pub fit: Array1<f32>,
 }
@@ -19,5 +19,5 @@ pub fn square_and_sum(pop: &Population) -> Result<Fitness> {
 // TODO:
 // Implement other objective functions
 // simple std
-// DEA would be graet
+// DEA would be great
 // Rastrigin and others

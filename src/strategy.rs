@@ -47,21 +47,18 @@ impl Cmaes {
         &self,
         params: &CmaesParams,
         state: &mut CmaesState,
-        counter: usize,
     ) -> Result<Population> {
-        if counter == 0 {
-            state.prepare_ask()?
-        }
-        let popsize = self.params.popsize.unwrap();
+        // Prepare before ask population
+        state.prepare_ask()?;
 
+        // Create population
+        let popsize = self.params.popsize.unwrap();
         let mut xs: Array2<f32> =
             Array2::zeros((popsize as usize, self.params.mean.len() as usize));
-
         for i in 0..popsize {
             let indiv: Individual = self.ask_one(params, state)?;
             xs.row_mut(i as usize).assign(&indiv.x); // Assign individual to population matrix
         }
-
         Ok(Population { xs })
     }
 
@@ -69,26 +66,41 @@ impl Cmaes {
         &self,
         params: &CmaesParams,
         mut state: CmaesState,
-        pop: &Population,
-        fitness: &Fitness,
+        pop: &mut Population,
+        fitness: &mut Fitness,
     ) -> Result<CmaesState> {
         // Increment step count
         state.g += 1;
 
-        // Sort population according to fitness
-        let mut xs = pop.to_owned();
-        // TODO: do the sort
+        // Sort ascending indices of fitness
+        let mut indices: Vec<usize> = (0..fitness.fit.len()).collect();
+        indices.sort_by(|&i, &j| fitness.fit[i].partial_cmp(&fitness.fit[j]).unwrap());
+        
+        // Sort population matrix
+        let mut sorted_xs = Array2::zeros((pop.xs.nrows(), pop.xs.ncols()));
+        for (new_idx, &original_idx) in indices.iter().enumerate() {
+            sorted_xs.row_mut(new_idx).assign(&pop.xs.row(original_idx));
+        }
+        pop.xs = sorted_xs;
 
-        // Own current data
-        let _vecs = state.vecs.to_owned();
-        let _eigvs = state.eigvs.to_owned();
-        // let (old_mean, old_sigma, old_Sigma, old_invsqrtC) = None, None, None, None;
+        // Sort fitness array
+        let mut sorted_fit = Array1::zeros(fitness.fit.len());
+        for (new_idx, &original_idx) in indices.iter().enumerate() {
+            sorted_fit[new_idx] = fitness.fit[original_idx];
+        }
+        fitness.fit = sorted_fit;
 
-        // Get underlying normal draw for each individual
-        xs.xs.axis_iter_mut(Axis(0)).for_each(|mut row| {
-            row -= &state.mean;
-            row /= state.sigma;
-        });
+
+
+        // let _vecs = state.vecs.to_owned();
+        // let _eigvs = state.eigvs.to_owned();
+        // // let (old_mean, old_sigma, old_Sigma, old_invsqrtC) = None, None, None, None;
+
+        // // Get underlying normal draw for each individual
+        // xs.xs.axis_iter_mut(Axis(0)).for_each(|mut row| {
+        //     row -= &state.mean;
+        //     row /= state.sigma;
+        // });
 
         // Selection and recombination
 

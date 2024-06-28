@@ -43,23 +43,25 @@ pub fn work() -> Result<()> {
 
     // Step 3: Instantiate a Cmaes State
     let mut state = CmaesState::init_state(&params)?;
-    // dbg!(&state);
+    // println!("{:+.4?}", &state);
+    // println!("\n");
+
 
     // Step 4: Ask
-    let counter = 0;
-    let pop = cmaes.ask(&params, &mut state, counter)?;
-    println!("{:+.4?}", &pop);
-    println!("\n");
+    let mut pop = cmaes.ask(&params, &mut state)?;
+    // println!("{:+.4?}", &pop);
+    // println!("\n");
 
     // Step 6: Eval
-    let fitness = square_and_sum(&pop)?;
-    println!("{:+.4?}", &fitness);
-    println!("\n");
+    let mut fitness = square_and_sum(&pop)?;
+    // println!("{:+.4?}", &fitness);
+    // println!("\n");
 
     // Step 7: Tell
-    state = cmaes.tell(&params, state, &pop, &fitness)?;
-    println!("{:+.4?}", &state);
-    println!("\n");
+    state = cmaes.tell(&params, state, &mut pop, &mut fitness)?;
+    // println!("{:+.4?}", &state);
+    // println!("\n");
+
 
     // Repeat steps 5-7
     // let fitness = square_and_sum(&pop)?;
