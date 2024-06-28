@@ -10,6 +10,10 @@ pub struct CmaesParams {
     // pub n_max_resampling: Option<i32>,
     // pub seed: Option<u64>,
     pub popsize: Option<i32>,
+    // TODO
+    // There are more params to do in create_default_init_params
+    // let mu = &pop.xs.nrows() / 2;
+
 }
 
 impl CmaesParams {

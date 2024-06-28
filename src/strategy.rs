@@ -71,7 +71,7 @@ impl Cmaes {
     ) -> Result<CmaesState> {
         // Increment step count
         state.g += 1;
-
+        
         // Sort ascending indices of fitness
         let mut indices: Vec<usize> = (0..fitness.fit.len()).collect();
         indices.sort_by(|&i, &j| fitness.fit[i].partial_cmp(&fitness.fit[j]).unwrap());
@@ -82,27 +82,27 @@ impl Cmaes {
             sorted_xs.row_mut(new_idx).assign(&pop.xs.row(original_idx));
         }
         pop.xs = sorted_xs;
-
+        
         // Sort fitness array
         let mut sorted_fit = Array1::zeros(fitness.fit.len());
         for (new_idx, &original_idx) in indices.iter().enumerate() {
             sorted_fit[new_idx] = fitness.fit[original_idx];
         }
         fitness.fit = sorted_fit;
+        
+        // Getting y back
+        pop.xs.axis_iter_mut(Axis(0)).for_each(|mut row| {
+            row -= &state.mean;
+            row /= state.sigma;
+        });
+        
+        // Best half of population len
+        // TODO: use here new params, see params TODO
+        
 
         
 
 
-
-        // let _vecs = state.vecs.to_owned();
-        // let _eigvs = state.eigvs.to_owned();
-        // // let (old_mean, old_sigma, old_Sigma, old_invsqrtC) = None, None, None, None;
-
-        // // Get underlying normal draw for each individual
-        // xs.xs.axis_iter_mut(Axis(0)).for_each(|mut row| {
-        //     row -= &state.mean;
-        //     row /= state.sigma;
-        // });
 
         // Selection and recombination
 
