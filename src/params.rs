@@ -13,91 +13,79 @@ pub struct CmaesParams {
 }
 
 #[derive(Debug, Clone)]
-pub struct CmaesParams_ {
+pub struct CmaesParamsValid {
     pub mean: Vec<f32>,
     pub sigma: f32,
     pub popsize: i32,
     pub mu: i32,
 }
 
-
-
-impl CmaesParams_ {
-    pub fn validate(params: &CmaesParams) -> Result<CmaesParams_> {
+impl CmaesParamsValid {
+    pub fn validate(params: &CmaesParams) -> Result<CmaesParamsValid> {
         print!("Computing default parameters... ");
-        let params_ = CmaesParams_::create_default_init_params(params)?;
+        let params_ = CmaesParamsValid::create_default_params(params)?;
         println!("Done.");
 
-        // print!("Validating initial parameters... ");
-        // match validate_init_params() {
-        //     Ok(_) => {
-        //         println!(" Done.")
-        //     }
-        //     Err(e) => {
-        //         eprint!("An initial Cmaes parameter is not following its constraint: ");
-        //         eprintln!("{} \n", e);
-        //         panic!();
-        //     }
-        // }
-        Ok(params_)
+        print!("Validating initial parameters... ");
+        match CmaesParamsValid::validate_params(&params_) {
+            Ok(_) => {
+                println!(" Done.");
+                Ok(params_)
+            }
+            Err(e) => {
+                eprint!("An initial Cmaes parameter is not following its constraint: ");
+                eprintln!("{} \n", e);
+                panic!();
+            }
+        }
     }
 
-    fn create_default_init_params(params: &CmaesParams) -> Result<CmaesParams_> {
-        // Impute default values when None supplied
-        // self.n_max_resampling = Some(self.n_max_resampling.unwrap_or(100));
-        // self.seed = Some(self.seed.unwrap_or(16));
-        let mean  = params.mean.clone();
-        let sigma  = params.sigma;
+    fn create_default_params(params: &CmaesParams) -> Result<CmaesParamsValid> {
+        let mean = params.mean.clone();
+        let sigma = params.sigma;
         let num_dims = params.mean.len() as i32;
-        let popsize = if params.popsize <= 5 { CmaesParams_::calculate_popsize(&num_dims)? }else { params.popsize };
+        let popsize = if params.popsize <= 5 {
+            println!("Parameter popsize smaller than 5, recalculating default value.");
+            CmaesParamsValid::calculate_popsize(&num_dims)?
+        } else {
+            params.popsize
+        };
         let mu = params.popsize / 2;
 
-        let params_ = CmaesParams_{
+        let params_ = CmaesParamsValid {
             mean,
             sigma,
             popsize,
-            mu
+            mu,
         };
-        
         Ok(params_)
     }
 
-    // fn validate_init_params() -> Result<()> {
-    //     // Check that the initial parameters hold their constraints
-    //     self.check_sigma()?;
-    //     self.check_mean_length()?;
-    //     // self.check_n_max_resampling()?;
-    //     self.check_popsize()?;
-    //     Ok(())
-    // }
+    fn validate_params(params_: &CmaesParamsValid) -> Result<()> {
+        CmaesParamsValid::check_mean_length(params_)?;
+        CmaesParamsValid::check_sigma(params_)?;
+        CmaesParamsValid::check_popsize(params_)?;
+        Ok(())
+    }
 
-    // fn check_sigma(&self) -> Result<()> {
-    //     if self.sigma <= 0.0 {
-    //         return Err(anyhow!("==> sigma must be > 0.0."));
-    //     }
-    //     Ok(())
-    // }
+    fn check_mean_length(params_: &CmaesParamsValid) -> Result<()> {
+        if params_.mean.len() <= 1 {
+            return Err(anyhow!("==> number of dimensions must be > 1."));
+        }
+        Ok(())
+    }
 
-    // fn check_mean_length(&self) -> Result<()> {
-    //     if self.mean.len() <= 1 {
-    //         return Err(anyhow!("==> number of dimensions must be > 1."));
-    //     }
-    //     Ok(())
-    // }
+    fn check_sigma(params_: &CmaesParamsValid) -> Result<()> {
+        if params_.sigma <= 0.0 {
+            return Err(anyhow!("==> sigma must be > 0.0."));
+        }
+        Ok(())
+    }
 
-    // fn check_n_max_resampling(&self) -> Result<()> {
-    //     if let Some(n_max_resampling) = self.n_max_resampling {
-    //         if n_max_resampling <= 1 {
-    //             return Err(anyhow!("==> n_max_resampling must be > 1."));
-    //         }
-    //     }
-    //     Ok(())
-    // }
-
-    fn check_popsize(&self) -> Result<()> {
-        if self.popsize <= 5 {
+    fn check_popsize(params_: &CmaesParamsValid) -> Result<()> {
+        if params_.popsize <= 5 {
             return Err(anyhow!("==> popsize must be > 5."));
-            }
+        }
         Ok(())
     }
 

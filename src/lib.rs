@@ -2,7 +2,6 @@ use anyhow::Result;
 
 #[allow(unused_imports)]
 // use blas_src;
-
 mod fitness;
 use fitness::square_and_sum;
 
@@ -29,6 +28,7 @@ pub fn work() -> Result<()> {
     // Step 1: Choose initial parameters
     let params = CmaesParams {
         // Required
+        // mean: vec![0.0],
         mean: vec![0.0, 1.0, 2.0, 1.5],
         // mean: vec![0.0; 20],
         sigma: 1.0,
@@ -59,7 +59,6 @@ pub fn work() -> Result<()> {
     state = cmaes.tell(&params, state, &mut pop, &mut fitness)?;
     // println!("{:+.4?}", &state);
     // println!("\n");
-
 
     // Repeat steps 5-7
     // let fitness = square_and_sum(&pop)?;

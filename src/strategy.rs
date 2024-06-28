@@ -3,12 +3,16 @@ use anyhow::Result;
 use ndarray::{Array1, Array2, Axis};
 use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
 
-use crate::{fitness::Fitness, params::{CmaesParams, CmaesParams_}, state::CmaesState};
+use crate::{
+    fitness::Fitness,
+    params::{CmaesParams, CmaesParamsValid},
+    state::CmaesState,
+};
 // use crate::state::CmaesState;
 
 #[derive(Debug)]
 pub struct Cmaes {
-    pub params: CmaesParams_,
+    pub params: CmaesParamsValid,
     // pub state: CmaesState,
 }
 
@@ -25,7 +29,7 @@ pub struct Population {
 impl Cmaes {
     pub fn new(params: &CmaesParams) -> Result<Self> {
         // Instantiate Cmaes
-        let params = CmaesParams_::validate(params)?;
+        let params = CmaesParamsValid::validate(params)?;
         Ok(Cmaes { params })
     }
 
@@ -43,11 +47,7 @@ impl Cmaes {
         Ok(Individual { x })
     }
 
-    pub fn ask(
-        &self,
-        params: &CmaesParams,
-        state: &mut CmaesState,
-    ) -> Result<Population> {
+    pub fn ask(&self, params: &CmaesParams, state: &mut CmaesState) -> Result<Population> {
         // Prepare before ask population
         state.prepare_ask()?;
 
@@ -71,38 +71,33 @@ impl Cmaes {
     ) -> Result<CmaesState> {
         // Increment step count
         state.g += 1;
-        
+
         // Sort ascending indices of fitness
         let mut indices: Vec<usize> = (0..fitness.fit.len()).collect();
         indices.sort_by(|&i, &j| fitness.fit[i].partial_cmp(&fitness.fit[j]).unwrap());
-        
+
         // Sort population matrix
         let mut sorted_xs = Array2::zeros((pop.xs.nrows(), pop.xs.ncols()));
         for (new_idx, &original_idx) in indices.iter().enumerate() {
             sorted_xs.row_mut(new_idx).assign(&pop.xs.row(original_idx));
         }
         pop.xs = sorted_xs;
-        
+
         // Sort fitness array
         let mut sorted_fit = Array1::zeros(fitness.fit.len());
         for (new_idx, &original_idx) in indices.iter().enumerate() {
             sorted_fit[new_idx] = fitness.fit[original_idx];
         }
         fitness.fit = sorted_fit;
-        
+
         // Getting y back
         pop.xs.axis_iter_mut(Axis(0)).for_each(|mut row| {
             row -= &state.mean;
             row /= state.sigma;
         });
-        
+
         // Best half of population len
         // TODO: use here new params, see params TODO
-        
-
-        
-
-
 
         // Selection and recombination
 
