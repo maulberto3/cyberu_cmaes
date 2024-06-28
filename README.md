@@ -1,6 +1,4 @@
-# Getting Started
-
-## Installing Prerequisites
+# Installing Prerequisites
 
 ## Install Make Tools
 

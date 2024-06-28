@@ -90,6 +90,8 @@ impl Cmaes {
         }
         fitness.fit = sorted_fit;
 
+        
+
 
 
         // let _vecs = state.vecs.to_owned();
