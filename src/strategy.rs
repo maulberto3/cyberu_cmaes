@@ -75,19 +75,15 @@ impl Cmaes {
         let mut indices: Vec<usize> = (0..fitness.fit.len()).collect();
         indices.sort_by(|&i, &j| fitness.fit[i].partial_cmp(&fitness.fit[j]).unwrap());
 
-        // Sort population matrix
+        // Sort population matrix and fitness
         let mut sorted_xs: Array2<f32> = Array2::zeros((pop.xs.nrows(), pop.xs.ncols()));
-        for (new_idx, &original_idx) in indices.iter().enumerate() {
-            sorted_xs.row_mut(new_idx).assign(&pop.xs.row(original_idx));
-        }
-        pop.xs = sorted_xs;
-
-        // Sort fitness array
         let mut sorted_fit: Array1<f32> = Array1::zeros(fitness.fit.len());
         for (new_idx, &original_idx) in indices.iter().enumerate() {
+            sorted_xs.row_mut(new_idx).assign(&pop.xs.row(original_idx));
             sorted_fit[new_idx] = fitness.fit[original_idx];
         }
-        fitness.fit = sorted_fit;
+        pop.xs.assign(&sorted_xs);
+        fitness.fit.assign(&sorted_fit);
 
         // Getting y back from x (see ask_one)
         pop.xs.axis_iter_mut(Axis(0)).for_each(|mut row| {
@@ -96,12 +92,12 @@ impl Cmaes {
         });
         
         // Selection and recombination
-        // Select best half of individuals
+        // Select best half of individuals data
         let y_mu: Array2<f32> = pop.xs.slice(s![..self.params_valid.mu, ..]).t().to_owned();
         let weights_mu: Array1<f32> = self.params_valid.weights_prime.slice(s![..self.params_valid.mu]).to_owned();
         // Get weigthed y
-        let y_w: Array2<f32> = &y_mu * &weights_mu.broadcast((y_mu.nrows(), weights_mu.len())).unwrap();
-        let y_w: Array1<f32> = y_w.sum_axis(Axis(1));
+        let y_w: Array1<f32> = y_mu.dot(&weights_mu);
+        // let y_w: Array1<f32> = y_w.sum_axis(Axis(1));
         // Update mean
         state.mean = state.mean + y_w.mapv(|x| x * self.params_valid.cm * self.params_valid.sigma);
 
