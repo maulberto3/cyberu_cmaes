@@ -62,7 +62,7 @@ impl CmaesState {
         let eigvs_2: Array1<f32> = eigvs_2.mapv(|eig| eig.re);
         let vecs: Array2<f32> = vecs.mapv(|vec| vec.re);
 
-        // Convert to positive numbers (negative magnitudes dropped)
+        // Convert to positive numbers (negative magnitudes dropped): TODO: why?
         // And take sqrt of them i.e. D = sqrt(max(Λ, 0))
         let mut eigvs = eigvs_2.clone();
         eigvs.map_inplace(|elem| {

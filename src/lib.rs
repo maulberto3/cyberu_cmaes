@@ -29,7 +29,7 @@ pub fn work() -> Result<()> {
     let params = CmaesParams {
         // Required
         // mean: vec![0.0],
-        mean: vec![0.0, 1.0, 2.0, 1.5],
+        mean: vec![0.0, 1.0, 2.0, -1.5],
         // mean: vec![0.0; 20],
         sigma: 1.0,
         popsize: 5,
@@ -46,7 +46,7 @@ pub fn work() -> Result<()> {
     // println!("\n");
 
     // Step 4: Ask
-    let mut pop = cmaes.ask(&params, &mut state)?;
+    let mut pop = cmaes.ask(&mut state)?;
     // println!("{:+.4?}", &pop);
     // println!("\n");
 
@@ -56,7 +56,7 @@ pub fn work() -> Result<()> {
     // println!("\n");
 
     // Step 7: Tell
-    state = cmaes.tell(&params, state, &mut pop, &mut fitness)?;
+    state = cmaes.tell(state, &mut pop, &mut fitness)?;
     // println!("{:+.4?}", &state);
     // println!("\n");
 

@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Result};
+use ndarray::{Array1, s};
 
 #[derive(Debug, Clone)]
 pub struct CmaesParams {
@@ -14,10 +15,14 @@ pub struct CmaesParams {
 
 #[derive(Debug, Clone)]
 pub struct CmaesParamsValid {
-    pub mean: Vec<f32>,
+    pub mean: Array1<f32>,
     pub sigma: f32,
     pub popsize: i32,
-    pub mu: i32,
+    pub mu: usize,
+    pub weights_prime: Array1<f32>,
+    pub mu_eff: f32,
+    pub mu_eff_rest: f32,
+    pub cm: f32,
 }
 
 impl CmaesParamsValid {
@@ -41,7 +46,7 @@ impl CmaesParamsValid {
     }
 
     fn create_default_params(params: &CmaesParams) -> Result<CmaesParamsValid> {
-        let mean = params.mean.clone();
+        let mean = Array1::from_vec(params.mean.clone());
         let sigma = params.sigma;
         let num_dims = params.mean.len() as i32;
         let popsize = if params.popsize <= 5 {
@@ -50,13 +55,29 @@ impl CmaesParamsValid {
         } else {
             params.popsize
         };
-        let mu = params.popsize / 2;
+        let mu = (params.popsize / 2) as usize;
+        let weights_prime: Array1<f32> = Array1::from_vec((0..popsize)
+            .map(|i| (((popsize as f32 + 1.0) / 2.0).ln() - (i as f32 + 1.0).ln()))
+            .collect());
+        let sum_weights_prime: f32 = weights_prime.slice(s![..mu]).sum();
+        let sum_weights_prime_squared: f32 = weights_prime.slice(s![..mu]).mapv(|w| w * w).sum();
+        let mu_eff = (sum_weights_prime * sum_weights_prime) / sum_weights_prime_squared;
+
+        let sum_weights_prime_minus: f32 = weights_prime.slice(s![mu..]).sum();
+        let sum_weights_prime_minus_squared: f32 = weights_prime.slice(s![mu..]).mapv(|w| w * w).sum();
+        let mu_eff_rest = (sum_weights_prime_minus * sum_weights_prime_minus) / sum_weights_prime_minus_squared;
+
+        let cm = 1.0;
 
         let params_ = CmaesParamsValid {
             mean,
             sigma,
             popsize,
             mu,
+            weights_prime,
+            mu_eff,
+            mu_eff_rest,
+            cm
         };
         Ok(params_)
     }
