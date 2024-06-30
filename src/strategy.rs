@@ -52,7 +52,7 @@ impl Cmaes {
         // Prepare before ask population
         state.prepare_ask()?;
 
-        // Create population
+        // Create population by looping ask_one
         let popsize = self.params_valid.popsize;
         let mut xs: Array2<f32> =
             Array2::zeros((popsize as usize, self.params_valid.mean.len() as usize));
@@ -72,7 +72,7 @@ impl Cmaes {
         // Increment step count
         state.g += 1;
 
-        // Sort ascending indices of fitness, i.e.e fist one is best (minimum objective)
+        // Sort ascending indices of fitness, i.e.e first one is best (minimum objective)
         let mut indices: Vec<usize> = (0..fitness.fit.len()).collect();
         indices.sort_by(|&i, &j| fitness.fit[i].partial_cmp(&fitness.fit[j]).unwrap());
 
@@ -92,40 +92,47 @@ impl Cmaes {
             row /= state.sigma;
         });
         
-        // Selection and recombination of mu individuals
-        // Select best half of individuals data and weights
+        // Selection and recombination for evolution
+        // Select the top best mu individuals and weights
         let y_mu: Array2<f32> = pop.xs.slice(s![..self.params_valid.mu, ..]).t().to_owned();
         // TODO: check the original order of weights
         let weights_mu: Array1<f32> = self.params_valid.weights_prime.slice(s![..self.params_valid.mu]).to_owned();
-        // Get y weigthed by weights_prime
+        // Compute the weighted sum of the top best mu individuals
         let y_w: Array1<f32> = y_mu.dot(&weights_mu);
-        // Update mean with y-weighted
+        // Update mean of the distribution
         state.mean = state.mean + y_w.mapv(|x| x * self.params_valid.cm * self.params_valid.sigma);
 
         // Step-size control
-        // C^(-1/2) = B D^(-1) B^T
-        let C_2: Array2<f32> = state.vecs.dot(&Array2::from_diag(&state.eigvs.mapv(|eigv| 1.0 / eigv))).dot(&state.vecs.t());
-        // Update sigma evolution path
-        state.p_sigma = (1.0 - self.params_valid.c_sigma) * state.p_sigma + (self.params_valid.c_sigma * (2.0 - self.params_valid.c_sigma) * self.params_valid.mu_eff).sqrt() * C_2.dot(&y_w);
+        // Compute the inverse square root of the covariance matrix C (using its eigendecomposition i.e. C^(-1/2) = B * D^(-1) * B^T)
+        let c_2: Array2<f32> = state.vecs.dot(&Array2::from_diag(&state.eigvs.mapv(|eigv| 1.0 / eigv))).dot(&state.vecs.t());
+        // Update the evolution path for for the covariance matrix (using the inverse square root of C and the weighted sum of individuals (y_w))
+        state.p_sigma = (1.0 - self.params_valid.c_sigma) * state.p_sigma + (self.params_valid.c_sigma * (2.0 - self.params_valid.c_sigma) * self.params_valid.mu_eff).sqrt() * c_2.dot(&y_w);
+        // Compute the norm of the evolution path for sigma (p_sigma)
         let norm_p_sigma: f32 = (state.p_sigma).norm();
-        // Update sigma
+        // Update the global step-size control parameter (sigma)
         state.sigma = state.sigma * ( ( state.sigma / self.params_valid.d_sigma ) * ( norm_p_sigma / self.params_valid.chi_n - 1.0 ) ).exp();
 
         // Covariance matrix adaption
+        // Calculate the left condition for h_sigma, which is the normalized p_sigma adjusted for cumulative step size decay
         let h_sigma_cond_left: f32 = norm_p_sigma / ( 1.0 - ( 1.0 - self.params_valid.c_sigma).powi(2 * (state.g + 1)) ).sqrt();
+        // Calculate the right condition for h_sigma, based on dimension-related scaling and the expected length of a random vector
         let h_sigma_cond_right: f32 = (1.4 + 2.0 / (self.params_valid.num_dims as f32 + 1.0)) * self.params_valid.chi_n;
+        // Determine h_sigma based on comparing the left and right conditions
         let h_sigma: f32 = match h_sigma_cond_left < h_sigma_cond_right {
             true => 1.0,
             false => 0.0,
         };
         
         // (eq.45)
+        // Update the evolution path for the covariance matrix adaptation (p_c), incorporating the h_sigma factor and the weighted sum of individuals (y_w)
         state.p_c = (1.0 - self.params_valid.cc) * state.p_c + h_sigma * (self.params_valid.cc * (2.0 - self.params_valid.cc) * self.params_valid.mu_eff).sqrt() * y_w;
 
-
-
-
         // (eq.46)
+        // let w_io = self._weights * np.where(
+        //     self._weights >= 0,
+        //     1,
+        //     self._n_dim / (np.linalg.norm(C_2.dot(y_k.T), axis=0) ** 2 + _EPS),
+        // )
 
         // (eq.47)
 
