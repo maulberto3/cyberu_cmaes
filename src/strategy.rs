@@ -1,6 +1,7 @@
 use anyhow::Result;
 
 use ndarray::{s, Array1, Array2, ArrayView1, Axis};
+use ndarray_linalg::Norm;
 use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
 
 use crate::{
@@ -91,17 +92,24 @@ impl Cmaes {
             row /= state.sigma;
         });
         
-        // Selection and recombination
-        // Select best half of individuals data
+        // Selection and recombination of mu individuals
+        // Select best half of individuals data and weights
         let y_mu: Array2<f32> = pop.xs.slice(s![..self.params_valid.mu, ..]).t().to_owned();
+        // TODO: check the original order of weights
         let weights_mu: Array1<f32> = self.params_valid.weights_prime.slice(s![..self.params_valid.mu]).to_owned();
-        // Get weigthed y
+        // Get y weigthed by weights_prime
         let y_w: Array1<f32> = y_mu.dot(&weights_mu);
-        // let y_w: Array1<f32> = y_w.sum_axis(Axis(1));
-        // Update mean
+        // Update mean with y-weighted
         state.mean = state.mean + y_w.mapv(|x| x * self.params_valid.cm * self.params_valid.sigma);
 
-        // Step-size
+        // Step-size control
+        // C^(-1/2) = B D^(-1) B^T
+        let C_2: Array2<f32> = state.vecs.dot(&Array2::from_diag(&state.eigvs.mapv(|eigv| 1.0 / eigv))).dot(&state.vecs.t());
+        // Update sigma evolution path
+        state.p_sigma = (1.0 - self.params_valid.c_sigma) * state.p_sigma + (self.params_valid.c_sigma * (2.0 - self.params_valid.c_sigma) * self.params_valid.mu_eff).sqrt() * C_2.dot(&y_w);
+        let norm_p_sigma = (state.p_sigma).norm();
+        // Update sigma
+        state.sigma = state.sigma * ( ( state.sigma / self.params_valid.d_sigma ) * ( norm_p_sigma / self.params_valid.chi_n - 1.0 ) ).exp();
 
         // Covariance matrix adaption
 

@@ -1,3 +1,5 @@
+use std::cmp::max_by;
+
 use anyhow::{anyhow, Result};
 use ndarray::{Array1, s};
 
@@ -23,6 +25,9 @@ pub struct CmaesParamsValid {
     pub mu_eff: f32,
     pub mu_eff_rest: f32,
     pub cm: f32,
+    pub c_sigma: f32,
+    pub d_sigma: f32,
+    pub chi_n: f32,
 }
 
 impl CmaesParamsValid {
@@ -69,6 +74,12 @@ impl CmaesParamsValid {
 
         let cm = 1.0;
 
+        let c_sigma = (mu_eff + 2.0) / (num_dims as f32 + mu_eff + 5.0);
+        let d_sigma = 1.0 + 2.0 * CmaesParamsValid::max_f32(0.0, ((mu_eff - 1.0).sqrt() / (num_dims as f32 + 1.0)) - 1.0) + c_sigma;
+
+        let chi_n = (num_dims as f32).sqrt() * ( 1.0 - (1.0 / (4.0 * num_dims as f32)) + 1.0 / (21.0 * (num_dims as f32 * num_dims as f32)) );
+        
+
         let params_ = CmaesParamsValid {
             mean,
             sigma,
@@ -77,7 +88,10 @@ impl CmaesParamsValid {
             weights_prime,
             mu_eff,
             mu_eff_rest,
-            cm
+            cm,
+            c_sigma,
+            d_sigma,
+            chi_n,
         };
         Ok(params_)
     }
@@ -112,5 +126,9 @@ impl CmaesParamsValid {
 
     fn calculate_popsize(num_dims: &i32) -> Result<i32> {
         Ok(4 + (3.0 * (*num_dims as f32).ln()).floor() as i32)
+    }
+
+    fn max_f32(a: f32, b: f32) -> f32 {
+        if a > b { a } else { b }
     }
 }
