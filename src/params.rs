@@ -19,6 +19,7 @@ pub struct CmaesParams {
 pub struct CmaesParamsValid {
     pub mean: Array1<f32>,
     pub sigma: f32,
+    pub num_dims: i32,
     pub popsize: i32,
     pub mu: usize,
     pub weights_prime: Array1<f32>,
@@ -28,6 +29,7 @@ pub struct CmaesParamsValid {
     pub c_sigma: f32,
     pub d_sigma: f32,
     pub chi_n: f32,
+    pub cc: f32,
 }
 
 impl CmaesParamsValid {
@@ -79,10 +81,12 @@ impl CmaesParamsValid {
 
         let chi_n = (num_dims as f32).sqrt() * ( 1.0 - (1.0 / (4.0 * num_dims as f32)) + 1.0 / (21.0 * (num_dims as f32 * num_dims as f32)) );
         
+        let cc = (4.0 + mu_eff / num_dims as f32) / (num_dims as f32 + 4.0 + 2.0 * mu_eff / num_dims as f32);
 
         let params_ = CmaesParamsValid {
             mean,
             sigma,
+            num_dims,
             popsize,
             mu,
             weights_prime,
@@ -92,6 +96,7 @@ impl CmaesParamsValid {
             c_sigma,
             d_sigma,
             chi_n,
+            cc,
         };
         Ok(params_)
     }

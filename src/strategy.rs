@@ -107,13 +107,23 @@ impl Cmaes {
         let C_2: Array2<f32> = state.vecs.dot(&Array2::from_diag(&state.eigvs.mapv(|eigv| 1.0 / eigv))).dot(&state.vecs.t());
         // Update sigma evolution path
         state.p_sigma = (1.0 - self.params_valid.c_sigma) * state.p_sigma + (self.params_valid.c_sigma * (2.0 - self.params_valid.c_sigma) * self.params_valid.mu_eff).sqrt() * C_2.dot(&y_w);
-        let norm_p_sigma = (state.p_sigma).norm();
+        let norm_p_sigma: f32 = (state.p_sigma).norm();
         // Update sigma
         state.sigma = state.sigma * ( ( state.sigma / self.params_valid.d_sigma ) * ( norm_p_sigma / self.params_valid.chi_n - 1.0 ) ).exp();
 
         // Covariance matrix adaption
-
+        let h_sigma_cond_left: f32 = norm_p_sigma / ( 1.0 - ( 1.0 - self.params_valid.c_sigma).powi(2 * (state.g + 1)) ).sqrt();
+        let h_sigma_cond_right: f32 = (1.4 + 2.0 / (self.params_valid.num_dims as f32 + 1.0)) * self.params_valid.chi_n;
+        let h_sigma: f32 = match h_sigma_cond_left < h_sigma_cond_right {
+            true => 1.0,
+            false => 0.0,
+        };
+        
         // (eq.45)
+        state.p_c = (1.0 - self.params_valid.cc) * state.p_c + h_sigma * (self.params_valid.cc * (2.0 - self.params_valid.cc) * self.params_valid.mu_eff).sqrt() * y_w;
+
+
+
 
         // (eq.46)
 
