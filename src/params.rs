@@ -1,8 +1,6 @@
-use std::cmp::max_by;
 
 use anyhow::{anyhow, Result};
-use ndarray::{Array1, s};
-use ndarray_linalg::Scalar;
+use ndarray::{s, Array1};
 use ndarray_stats::QuantileExt;
 
 #[derive(Debug, Clone)]
@@ -66,39 +64,50 @@ impl CmaesParamsValid {
             params.popsize
         };
         let mu = (params.popsize / 2) as usize;
-        let weights_prime: Array1<f32> = Array1::from_vec((0..popsize)
-            .map(|i| (((popsize as f32 + 1.0) / 2.0).ln() - (i as f32 + 1.0).ln()))
-            .collect());
+        let weights_prime: Array1<f32> = Array1::from_vec(
+            (0..popsize)
+                .map(|i| (((popsize as f32 + 1.0) / 2.0).ln() - (i as f32 + 1.0).ln()))
+                .collect(),
+        );
         let sum_weights_prime: f32 = weights_prime.slice(s![..mu]).sum();
         let sum_weights_prime_squared: f32 = weights_prime.slice(s![..mu]).mapv(|w| w * w).sum();
         let mu_eff = (sum_weights_prime * sum_weights_prime) / sum_weights_prime_squared;
 
         let sum_weights_prime_minus: f32 = weights_prime.slice(s![mu..]).sum();
-        let sum_weights_prime_minus_squared: f32 = weights_prime.slice(s![mu..]).mapv(|w| w * w).sum();
-        let mu_eff_rest = (sum_weights_prime_minus * sum_weights_prime_minus) / sum_weights_prime_minus_squared;
+        let sum_weights_prime_minus_squared: f32 =
+            weights_prime.slice(s![mu..]).mapv(|w| w * w).sum();
+        let mu_eff_rest =
+            (sum_weights_prime_minus * sum_weights_prime_minus) / sum_weights_prime_minus_squared;
 
         let cm = 1.0;
 
         let c_sigma = (mu_eff + 2.0) / (num_dims + mu_eff + 5.0);
-        let d_sigma = 1.0 + 2.0 * CmaesParamsValid::max_f32(0.0, ((mu_eff - 1.0).sqrt() / (num_dims + 1.0)) - 1.0) + c_sigma;
+        let d_sigma = 1.0
+            + 2.0
+                * CmaesParamsValid::max_f32(0.0, ((mu_eff - 1.0).sqrt() / (num_dims + 1.0)) - 1.0)
+            + c_sigma;
 
-        let chi_n = (num_dims).sqrt() * ( 1.0 - (1.0 / (4.0 * num_dims)) + 1.0 / (21.0 * (num_dims * num_dims)) );
-        
+        let chi_n = (num_dims).sqrt()
+            * (1.0 - (1.0 / (4.0 * num_dims)) + 1.0 / (21.0 * (num_dims * num_dims)));
+
         let cc = (4.0 + mu_eff / num_dims) / (num_dims + 4.0 + 2.0 * mu_eff / num_dims);
 
-        let positive_sum: f32 = weights_prime.fold(0.0, |acc, &x| if x > 0.0 { acc + x } else { acc });
-        let negative_sum: f32 = weights_prime.fold(0.0, |acc, &x| if x < 0.0 { acc + x.abs() } else { acc });
+        let positive_sum: f32 =
+            weights_prime.fold(0.0, |acc, &x| if x > 0.0 { acc + x } else { acc });
+        let negative_sum: f32 =
+            weights_prime.fold(0.0, |acc, &x| if x < 0.0 { acc + x.abs() } else { acc });
         let alpha_cov = 2.0;
         let c1: f32 = alpha_cov / ((num_dims + 1.3).powi(2) + mu_eff);
         let cmu: Vec<f32> = vec![
             1.0 - c1 - f32::EPSILON,
-            alpha_cov * (mu_eff - 2.0 + 1.0 / mu_eff) / ((num_dims + 2.0).powi(2) + alpha_cov * mu_eff / 2.0),
+            alpha_cov * (mu_eff - 2.0 + 1.0 / mu_eff)
+                / ((num_dims + 2.0).powi(2) + alpha_cov * mu_eff / 2.0),
         ];
         let cmu: f32 = Array1::from_vec(cmu).min().unwrap().to_owned();
         let min_alpha: Vec<f32> = vec![
-            1.0 + c1 / cmu,  // eq.50
-            1.0 + (2.0 * mu_eff_rest) / (mu_eff + 2.0),  // eq.51
-            (1.0 - c1 - cmu) / (num_dims * cmu),  // eq.52
+            1.0 + c1 / cmu,                             // eq.50
+            1.0 + (2.0 * mu_eff_rest) / (mu_eff + 2.0), // eq.51
+            (1.0 - c1 - cmu) / (num_dims * cmu),        // eq.52
         ];
         let min_alpha: f32 = Array1::from_vec(min_alpha).min().unwrap().to_owned();
         let weights: Array1<f32> = weights_prime.mapv(|x| {
@@ -108,7 +117,7 @@ impl CmaesParamsValid {
                 min_alpha * x / negative_sum
             }
         });
-
+        
         // np.where(
         //     weights_prime >= 0,
         //     1 / positive_sum * weights_prime,
@@ -167,6 +176,10 @@ impl CmaesParamsValid {
     }
 
     fn max_f32(a: f32, b: f32) -> f32 {
-        if a > b { a } else { b }
+        if a > b {
+            a
+        } else {
+            b
+        }
     }
 }

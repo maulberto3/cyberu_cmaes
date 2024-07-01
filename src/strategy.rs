@@ -91,52 +91,78 @@ impl Cmaes {
             row -= &state.mean;
             row /= state.sigma;
         });
-        
+
         // Selection and recombination for evolution
         // Select top μ individuals and their weights
         let y_mu: Array2<f32> = pop.xs.slice(s![..self.params_valid.mu, ..]).t().to_owned();
         // TODO: check the original order of weights
-        let weights_mu: Array1<f32> = self.params_valid.weights_prime.slice(s![..self.params_valid.mu]).to_owned();
+        let weights_mu: Array1<f32> = self
+            .params_valid
+            .weights_prime
+            .slice(s![..self.params_valid.mu])
+            .to_owned();
         let y_w: Array1<f32> = y_mu.dot(&weights_mu);
         // Update mean of distribution: m = m + cm * σ * y_w
         state.mean = state.mean + y_w.mapv(|x| x * self.params_valid.cm * self.params_valid.sigma);
 
         // Step-size control
         // Compute the inverse square root of the covariance matrix C (using its eigendecomposition i.e. C^(-1/2) = B * D^(-1) * B^T)
-        let c_2: Array2<f32> = state.vecs.dot(&Array2::from_diag(&state.eigvs.mapv(|eigv| 1.0 / eigv))).dot(&state.vecs.t());
+        let c_2: Array2<f32> = state
+            .vecs
+            .dot(&Array2::from_diag(&state.eigvs.mapv(|eigv| 1.0 / eigv)))
+            .dot(&state.vecs.t());
         // Update the evolution path for for the covariance matrix (using the inverse square root of C and the weighted sum of individuals (y_w))
-        state.p_sigma = (1.0 - self.params_valid.c_sigma) * state.p_sigma + (self.params_valid.c_sigma * (2.0 - self.params_valid.c_sigma) * self.params_valid.mu_eff).sqrt() * c_2.dot(&y_w);
+        state.p_sigma = (1.0 - self.params_valid.c_sigma) * state.p_sigma
+            + (self.params_valid.c_sigma
+                * (2.0 - self.params_valid.c_sigma)
+                * self.params_valid.mu_eff)
+                .sqrt()
+                * c_2.dot(&y_w);
         // Compute the norm of the evolution path for sigma (p_sigma)
         let norm_p_sigma: f32 = (state.p_sigma).norm();
         // Update the global step-size control parameter (sigma)
-        state.sigma = state.sigma * ( ( state.sigma / self.params_valid.d_sigma ) * ( norm_p_sigma / self.params_valid.chi_n - 1.0 ) ).exp();
+        state.sigma = state.sigma
+            * ((state.sigma / self.params_valid.d_sigma)
+                * (norm_p_sigma / self.params_valid.chi_n - 1.0))
+                .exp();
 
         // Covariance matrix adaption
         // Calculate the left condition for h_sigma
-        let h_sigma_cond_left: f32 = norm_p_sigma / ( 1.0 - ( 1.0 - self.params_valid.c_sigma).powi(2 * (state.g + 1)) ).sqrt();
+        let h_sigma_cond_left: f32 =
+            norm_p_sigma / (1.0 - (1.0 - self.params_valid.c_sigma).powi(2 * (state.g + 1))).sqrt();
         // Calculate the right condition for h_sigma
-        let h_sigma_cond_right: f32 = (1.4 + 2.0 / (self.params_valid.num_dims as f32 + 1.0)) * self.params_valid.chi_n;
+        let h_sigma_cond_right: f32 =
+            (1.4 + 2.0 / (self.params_valid.num_dims as f32 + 1.0)) * self.params_valid.chi_n;
         // Determine h_sigma (based on comparing the left and right conditions)
         let h_sigma: f32 = match h_sigma_cond_left < h_sigma_cond_right {
             true => 1.0,
             false => 0.0,
         };
-        
+
         // (eq.45)
         // Update evolution path of covariance matrix adaptation
-        state.p_c = (1.0 - self.params_valid.cc) * state.p_c + h_sigma * (self.params_valid.cc * (2.0 - self.params_valid.cc) * self.params_valid.mu_eff).sqrt() * y_w;
+        state.p_c = (1.0 - self.params_valid.cc) * state.p_c
+            + h_sigma
+                * (self.params_valid.cc * (2.0 - self.params_valid.cc) * self.params_valid.mu_eff)
+                    .sqrt()
+                * y_w;
 
         // (eq.46)
-        // let w_io = self._weights * np.where(
-        //     self._weights >= 0,
-        //     1,
-        //     self._n_dim / (np.linalg.norm(C_2.dot(y_k.T), axis=0) ** 2 + _EPS),
-        // )
+        let w_io = &self.params_valid.weights.mapv(|x| {
+            if x >= 0.0 {
+                1.0
+            } else {
+                self.params_valid.num_dims / ( ( c_2.dot(&pop.xs.t()) ).norm().powi(2) + f32::EPSILON)
+            }
+        });
+        let w_io = &self.params_valid.weights * w_io;
 
+        let delta_h_sigma = (1.0 - h_sigma) * self.params_valid.cc * (2.0 - self.params_valid.cc);
+        
         // (eq.47)
+        
 
         // Learning rate adaptation (enhancement)
-
 
         Ok(state)
     }
