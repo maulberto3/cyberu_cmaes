@@ -21,7 +21,7 @@ pub struct CmaesParams {
 pub struct CmaesParamsValid {
     pub mean: Array1<f32>,
     pub sigma: f32,
-    pub num_dims: i32,
+    pub num_dims: f32,
     pub popsize: i32,
     pub mu: usize,
     pub weights_prime: Array1<f32>,
@@ -56,10 +56,10 @@ impl CmaesParamsValid {
     }
 
     fn create_default_params(params: &CmaesParams) -> Result<CmaesParamsValid> {
-        let mean = Array1::from_vec(params.mean.clone());
-        let sigma = params.sigma;
-        let num_dims = params.mean.len() as i32;
-        let popsize = if params.popsize <= 5 {
+        let mean: Array1<f32> = Array1::from_vec(params.mean.clone());
+        let sigma: f32 = params.sigma;
+        let num_dims: f32 = params.mean.len() as f32;
+        let popsize: i32 = if params.popsize <= 5 {
             println!("Parameter popsize smaller than 5, recalculating default value.");
             CmaesParamsValid::calculate_popsize(&num_dims)?
         } else {
@@ -79,26 +79,26 @@ impl CmaesParamsValid {
 
         let cm = 1.0;
 
-        let c_sigma = (mu_eff + 2.0) / (num_dims as f32 + mu_eff + 5.0);
-        let d_sigma = 1.0 + 2.0 * CmaesParamsValid::max_f32(0.0, ((mu_eff - 1.0).sqrt() / (num_dims as f32 + 1.0)) - 1.0) + c_sigma;
+        let c_sigma = (mu_eff + 2.0) / (num_dims + mu_eff + 5.0);
+        let d_sigma = 1.0 + 2.0 * CmaesParamsValid::max_f32(0.0, ((mu_eff - 1.0).sqrt() / (num_dims + 1.0)) - 1.0) + c_sigma;
 
-        let chi_n = (num_dims as f32).sqrt() * ( 1.0 - (1.0 / (4.0 * num_dims as f32)) + 1.0 / (21.0 * (num_dims as f32 * num_dims as f32)) );
+        let chi_n = (num_dims).sqrt() * ( 1.0 - (1.0 / (4.0 * num_dims)) + 1.0 / (21.0 * (num_dims * num_dims)) );
         
-        let cc = (4.0 + mu_eff / num_dims as f32) / (num_dims as f32 + 4.0 + 2.0 * mu_eff / num_dims as f32);
+        let cc = (4.0 + mu_eff / num_dims) / (num_dims + 4.0 + 2.0 * mu_eff / num_dims);
 
         let positive_sum: f32 = weights_prime.fold(0.0, |acc, &x| if x > 0.0 { acc + x } else { acc });
         let negative_sum: f32 = weights_prime.fold(0.0, |acc, &x| if x < 0.0 { acc + x.abs() } else { acc });
         let alpha_cov = 2.0;
-        let c1: f32 = alpha_cov / ((num_dims as f32 + 1.3).powi(2) + mu_eff);
+        let c1: f32 = alpha_cov / ((num_dims + 1.3).powi(2) + mu_eff);
         let cmu: Vec<f32> = vec![
             1.0 - c1 - f32::EPSILON,
-            alpha_cov * (mu_eff - 2.0 + 1.0 / mu_eff) / ((num_dims as f32 + 2.0).powi(2) + alpha_cov * mu_eff / 2.0),
+            alpha_cov * (mu_eff - 2.0 + 1.0 / mu_eff) / ((num_dims + 2.0).powi(2) + alpha_cov * mu_eff / 2.0),
         ];
         let cmu: f32 = Array1::from_vec(cmu).min().unwrap().to_owned();
         let min_alpha: Vec<f32> = vec![
             1.0 + c1 / cmu,  // eq.50
             1.0 + (2.0 * mu_eff_rest) / (mu_eff + 2.0),  // eq.51
-            (1.0 - c1 - cmu) / (num_dims as f32 * cmu),  // eq.52
+            (1.0 - c1 - cmu) / (num_dims * cmu),  // eq.52
         ];
         let min_alpha: f32 = Array1::from_vec(min_alpha).min().unwrap().to_owned();
         let weights: Array1<f32> = weights_prime.mapv(|x| {
@@ -162,8 +162,8 @@ impl CmaesParamsValid {
         Ok(())
     }
 
-    fn calculate_popsize(num_dims: &i32) -> Result<i32> {
-        Ok(4 + (3.0 * (*num_dims as f32).ln()).floor() as i32)
+    fn calculate_popsize(num_dims: &f32) -> Result<i32> {
+        Ok(4 + (3.0 * (*num_dims).ln()).floor() as i32)
     }
 
     fn max_f32(a: f32, b: f32) -> f32 {
