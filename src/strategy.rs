@@ -72,7 +72,7 @@ impl Cmaes {
         // Increment step count
         state.g += 1;
 
-        // Sort ascending indices of fitness, i.e.e first one is best (minimum objective)
+        // Sort indices of fitness and population by ascending fitness
         let mut indices: Vec<usize> = (0..fitness.fit.len()).collect();
         indices.sort_by(|&i, &j| fitness.fit[i].partial_cmp(&fitness.fit[j]).unwrap());
 
@@ -86,20 +86,19 @@ impl Cmaes {
         pop.xs.assign(&sorted_xs);
         fitness.fit.assign(&sorted_fit);
 
-        // Getting y back from x (see ask_one)
+        // Normalize population: y = (x - m) / σ
         pop.xs.axis_iter_mut(Axis(0)).for_each(|mut row| {
             row -= &state.mean;
             row /= state.sigma;
         });
         
         // Selection and recombination for evolution
-        // Select the top best mu individuals and weights
+        // Select top μ individuals and their weights
         let y_mu: Array2<f32> = pop.xs.slice(s![..self.params_valid.mu, ..]).t().to_owned();
         // TODO: check the original order of weights
         let weights_mu: Array1<f32> = self.params_valid.weights_prime.slice(s![..self.params_valid.mu]).to_owned();
-        // Compute the weighted sum of the top best mu individuals
         let y_w: Array1<f32> = y_mu.dot(&weights_mu);
-        // Update mean of the distribution
+        // Update mean of distribution: m = m + cm * σ * y_w
         state.mean = state.mean + y_w.mapv(|x| x * self.params_valid.cm * self.params_valid.sigma);
 
         // Step-size control
@@ -113,18 +112,18 @@ impl Cmaes {
         state.sigma = state.sigma * ( ( state.sigma / self.params_valid.d_sigma ) * ( norm_p_sigma / self.params_valid.chi_n - 1.0 ) ).exp();
 
         // Covariance matrix adaption
-        // Calculate the left condition for h_sigma, which is the normalized p_sigma adjusted for cumulative step size decay
+        // Calculate the left condition for h_sigma
         let h_sigma_cond_left: f32 = norm_p_sigma / ( 1.0 - ( 1.0 - self.params_valid.c_sigma).powi(2 * (state.g + 1)) ).sqrt();
-        // Calculate the right condition for h_sigma, based on dimension-related scaling and the expected length of a random vector
+        // Calculate the right condition for h_sigma
         let h_sigma_cond_right: f32 = (1.4 + 2.0 / (self.params_valid.num_dims as f32 + 1.0)) * self.params_valid.chi_n;
-        // Determine h_sigma based on comparing the left and right conditions
+        // Determine h_sigma (based on comparing the left and right conditions)
         let h_sigma: f32 = match h_sigma_cond_left < h_sigma_cond_right {
             true => 1.0,
             false => 0.0,
         };
         
         // (eq.45)
-        // Update the evolution path for the covariance matrix adaptation (p_c), incorporating the h_sigma factor and the weighted sum of individuals (y_w)
+        // Update evolution path of covariance matrix adaptation
         state.p_c = (1.0 - self.params_valid.cc) * state.p_c + h_sigma * (self.params_valid.cc * (2.0 - self.params_valid.cc) * self.params_valid.mu_eff).sqrt() * y_w;
 
         // (eq.46)

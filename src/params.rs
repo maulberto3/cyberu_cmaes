@@ -2,6 +2,8 @@ use std::cmp::max_by;
 
 use anyhow::{anyhow, Result};
 use ndarray::{Array1, s};
+use ndarray_linalg::Scalar;
+use ndarray_stats::QuantileExt;
 
 #[derive(Debug, Clone)]
 pub struct CmaesParams {
@@ -30,6 +32,7 @@ pub struct CmaesParamsValid {
     pub d_sigma: f32,
     pub chi_n: f32,
     pub cc: f32,
+    pub weights: Array1<f32>,
 }
 
 impl CmaesParamsValid {
@@ -83,6 +86,35 @@ impl CmaesParamsValid {
         
         let cc = (4.0 + mu_eff / num_dims as f32) / (num_dims as f32 + 4.0 + 2.0 * mu_eff / num_dims as f32);
 
+        let positive_sum: f32 = weights_prime.fold(0.0, |acc, &x| if x > 0.0 { acc + x } else { acc });
+        let negative_sum: f32 = weights_prime.fold(0.0, |acc, &x| if x < 0.0 { acc + x.abs() } else { acc });
+        let alpha_cov = 2.0;
+        let c1: f32 = alpha_cov / ((num_dims as f32 + 1.3).powi(2) + mu_eff);
+        let cmu: Vec<f32> = vec![
+            1.0 - c1 - f32::EPSILON,
+            alpha_cov * (mu_eff - 2.0 + 1.0 / mu_eff) / ((num_dims as f32 + 2.0).powi(2) + alpha_cov * mu_eff / 2.0),
+        ];
+        let cmu: f32 = Array1::from_vec(cmu).min().unwrap().to_owned();
+        let min_alpha: Vec<f32> = vec![
+            1.0 + c1 / cmu,  // eq.50
+            1.0 + (2.0 * mu_eff_rest) / (mu_eff + 2.0),  // eq.51
+            (1.0 - c1 - cmu) / (num_dims as f32 * cmu),  // eq.52
+        ];
+        let min_alpha: f32 = Array1::from_vec(min_alpha).min().unwrap().to_owned();
+        let weights: Array1<f32> = weights_prime.mapv(|x| {
+            if x >= 0.0 {
+                x / positive_sum
+            } else {
+                min_alpha * x / negative_sum
+            }
+        });
+
+        // np.where(
+        //     weights_prime >= 0,
+        //     1 / positive_sum * weights_prime,
+        //     min_alpha / negative_sum * weights_prime,
+        // )
+
         let params_ = CmaesParamsValid {
             mean,
             sigma,
@@ -97,6 +129,7 @@ impl CmaesParamsValid {
             d_sigma,
             chi_n,
             cc,
+            weights,
         };
         Ok(params_)
     }
